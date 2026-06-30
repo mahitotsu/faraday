@@ -1,0 +1,37 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 127.0.0.1:4317
+
+processors:
+  batch:
+    timeout: 10s
+
+exporters:
+  awsemf:
+    namespace: ClaudeCode
+    log_group_name: /aws/claude-code/metrics
+    dimension_rollup_option: NoDimensionRollup
+    resource_to_telemetry_conversion:
+      enabled: true
+  awscloudwatchlogs:
+    log_group_name: /aws/claude-code/events
+    log_stream_name: claude-code
+  awsxray:
+    region: ap-northeast-1
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsemf]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awscloudwatchlogs]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsxray]
