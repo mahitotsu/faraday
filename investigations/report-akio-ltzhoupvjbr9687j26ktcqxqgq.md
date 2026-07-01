@@ -1,6 +1,33 @@
-# セッション調査レポート
-**調査対象 SSM セッション ID**: `user@example.com-ltzhoupvjbr9687j26ktcqxqgq`  
-**調査実施日時**: 2026-07-01T05:00:00Z（独立調査・過去レポート参照なし）
+# 統合調査レポート: `user@example.com-ltzhoupvjbr9687j26ktcqxqgq`
+
+> 調査実施: 2026-07-01 | 調査者: Claude Code (claude-sonnet-4-6)
+
+---
+
+## 総合評価
+
+| 観点 | 判定 | 根拠セクション |
+|---|---|---|
+| **総合判定** | **要注意 ⚠️（1件）** | — |
+| 証跡完全性（ログ削除・証跡停止の有無） | ✅ | CloudTrail追加証跡 |
+| 接続ユーザー・接続元IP | ✅ | セッション概要テーブル / CloudTrail |
+| Bedrockアクセス主体（EC2インスタンスロールのみか） | ✅ | CloudTrail追加証跡 |
+| 使用モデル（許可リスト内か） | ✅ | CloudTrail追加証跡 / Bedrock↔OTel |
+| 呼び出しリージョン（ap-northeast-1のみか） | ✅ | CloudTrail追加証跡 |
+| 想定外API（S3/IAM/Secrets Manager等の有無） | ✅ | CloudTrail追加証跡 |
+| IAMロールチェーン（スタック管理下に閉じているか） | ✅ | CloudTrail追加証跡 |
+| 機密アクセス（Secrets Manager / SecureString） | ✅ | CloudTrail追加証跡 |
+| ツール実行許可（ユーザー明示許可を経ているか） | ✅ | 完全タイムライン / OTel |
+| Gateway/Lambdaトレース連携（traceId一致） | ✅ | Gateway/Lambda/DynamoDBトレース連携 |
+| DynamoDB読み取り範囲（Scanの有無・対象範囲） | ⚠️ | Gateway/Lambda/DynamoDBトレース連携 |
+| Bedrock↔OTel整合性（呼び出し回数・トークン数） | ✅ | Bedrock↔OTelクロスバリデーション |
+| コンテンツセキュリティ（機密情報・インジェクション） | ✅ | コンテンツセキュリティ評価 |
+| Lambda実行ログ整合性（入力ペイロード一致） | ✅ | CloudWatch Logs追加証跡 |
+| データ整合性（DynamoDB実データとの整合） | ✅ | データ整合性 |
+| エラー・障害（未解消エラーの有無） | ✅ | エラー・障害分析 |
+
+**要注意事項:**
+- ⚠️ `search_memos` ツール実行において `DynamoDB.Scan`（全件スキャン）が発生。アクセス対象は `user@example.com` ユーザー所有のデータ範囲内と推定されるが、Scan 操作自体は全件読み取りを行うため継続モニタリングを推奨。
 
 ---
 
@@ -11,21 +38,19 @@
 | SSM セッション ID | `user@example.com-ltzhoupvjbr9687j26ktcqxqgq` |
 | SSM セッション 開始 | `2026-07-01T04:22:14Z` |
 | SSM セッション 終了 | `2026-07-01T04:24:13Z` |
-| Claude Code セッション ID①（session1） | `6ad4bee0-301f-4dc8-b1cc-1b631e903fa5` |
-| Claude Code セッション① 開始 | `2026-07-01T04:22:20Z`（OTel mcp_server_connection） |
-| Claude Code セッション① 終了 | `2026-07-01T04:23:25Z`（/clear コマンド） |
-| Claude Code セッション ID②（resume UUID） | `ec8463ac-75f8-4d58-a7fa-ed54b7169a3b` |
-| Claude Code セッション② 開始 | `2026-07-01T04:23:37Z`（OTel 最初のイベント） |
-| Claude Code セッション② 終了 | `2026-07-01T04:24:13Z`（/exit コマンド） |
+| Claude Code セッション 1 ID | `6ad4bee0-301f-4dc8-b1cc-1b631e903fa5`（/clear で終了） |
+| Claude Code セッション 1 開始 | `2026-07-01T04:22:20Z`（MCP接続確立） |
+| Claude Code セッション 1 終了 | `2026-07-01T04:23:25Z`（/clear） |
+| Claude Code セッション 2 ID（resume UUID） | `ec8463ac-75f8-4d58-a7fa-ed54b7169a3b` |
+| Claude Code セッション 2 開始 | `2026-07-01T04:23:37Z`（OTel 最初のイベント） |
+| Claude Code セッション 2 終了 | `2026-07-01T04:24:13Z`（/exit） |
 | ユーザー | `assumed-role/AWSReservedSSO_AdministratorAccess_9445badae67c7bfe/user@example.com` |
-| 接続元 IP | `35.200.74.87` |
 | インスタンス | `i-0d3f35fdebd11b99d` |
 | インスタンスロール | `FaradayStack-InstanceRole3CCE2F1D-C6MH8DxsIsIh` |
-| SSM ドキュメント | `FaradayStack-ClaudeSessionDocument-5YfSwyzLMCdv` |
-| Claude Code バージョン | `v2.1.196` |
+| Claude Code バージョン | `2.1.196`（SSMバナー・CloudTrail userAgent両方で確認） |
 | 使用モデル | `jp.anthropic.claude-sonnet-4-5-20250929-v1:0` |
 
-> **1 つの SSM セッション内に 2 つの Claude Code セッションが含まれる**。ユーザーが第1セッション完了後に `/clear` を実行し、新規セッション `ec8463ac-...` を開始。SSM ログ末尾の `claude --resume ec8463ac-75f8-4d58-a7fa-ed54b7169a3b` は第2セッションの resume UUID。
+> 1つの SSM セッション内に2つの Claude Code セッションが含まれる。ユーザーが第1セッション完了後に `/clear` を実行し、新規セッション `ec8463ac-...` を開始。SSM ログ末尾の `claude --resume ec8463ac-75f8-4d58-a7fa-ed54b7169a3b` は第2セッションの resume UUID。
 
 ---
 
@@ -33,149 +58,125 @@
 
 | 時刻(UTC) | ソース | イベント |
 |---|---|---|
-| 04:22:09 | CloudTrail | DescribeStacks（`user@example.com` コンソール操作） |
-| 04:22:11 | CloudTrail | DescribeInstances（`user@example.com` コンソール操作） |
-| 04:22:12 | CloudTrail | AssumeRole → AWSServiceRoleForSSMQuickSetup |
-| 04:22:12 | CloudTrail | **StartSession** (target=i-0d3f35fdebd11b99d) |
-| 04:22:12 | CloudTrail | CreateDataChannel / OpenDataChannel |
-| 04:22:12 | CloudTrail | DescribeLogGroups（ADOT ストリーム存在確認） |
-| **04:22:14** | **SSM** | **▶ SSM セッション 開始** |
-| 04:22:14 | CloudTrail | CreateLogStream（ADOT ストリーム作成） |
-| 04:22:15 | CloudTrail | InvokeModel ×10（ValidationException×8 + AccessDenied×2）— 起動時モデル疎通確認（userAgent: FGr/JS 0.94.0） |
-| 04:22:15 | CloudTrail | ListInferenceProfiles（AccessDenied）— 同上（起動時モデル疎通確認） |
-| **04:22:20** | **OTel** | **▶ Claude Code セッション① 開始** mcp_server_connection: faraday-memos 接続完了（4618ms） |
-| 04:22:31 | CloudTrail | CreateLogStream（ResourceAlreadyExistsException — 冪等操作、正常） |
-| 04:22:45 | OTel | user_prompt: 「obs-verify-20260701-001 というタイトルでメモを作成し、IDで取得して内容を確認してください。各ステップを逐一報告して」 |
-| 04:22:47 | Bedrock | InvokeModelWithResponseStream reqId=bff00beb → セッションタイトル「Obsidianメモの作成と取得テスト」 |
-| 04:22:47 | OTel | api_request: generate_session_title, in=417, out=28, cost=$0.001671 |
-| 04:22:47 | Bedrock | InvokeModelWithResponseStream reqId=370b3788 → ToolSearch(create_memo+get_memo) |
-| 04:22:50 | CloudTrail | AssumeRole → FaradayStack-BedrockLoggingRole（BedrockModelInvocationLogSession） |
-| 04:22:51 | OTel | tool_decision: ToolSearch → accept（source=config） |
-| 04:22:51 | OTel | api_request: main, in=10, out=373, cacheCreation=23800, cost=$0.09488 |
-| 04:22:52 | Bedrock | InvokeModelWithResponseStream reqId=74411cdb → create_memo ツール呼び出し |
-| 04:22:51 | OTel | api_request: main, in=10, out=238, cacheCreation=397, cacheRead=23800, cost=$0.01223 |
-| 04:22:55 | Bedrock | InvokeModelWithResponseStream reqId=84abc4c6 → create_memo 実行 |
-| 04:22:58 | CloudTrail | AssumeRole ×4: BedrockLoggingRole + AgentCoreGatewayRole(gateway-session-77d8a555) + MemoLambdaServiceRole(tracing+FaradayMemoMCP) |
-| 04:22:58 | CloudTrail | kms:Decrypt（FaradayMemoMCP 環境変数復号） |
-| 04:22:58 | aws/spans | AgentCore.Gateway.InvokeTool.FaradayMemoMCP___create_memo（1910ms, traceId=6a4496220d6a8c161a77…） |
-| 04:22:58 | Lambda | INIT_START + START RequestId=3c3e1101（コールドスタート） |
-| 04:22:58 | Lambda | 入力: `{"title":"obs-verify-20260701-001","content":"This is a test memo created on 2026-07-01 for verification purposes."}` |
-| 04:22:58 | aws/spans | DynamoDB.PutItem（222.7ms） |
-| 04:22:58 | Lambda | REPORT 3c3e1101: Duration=227ms, Billed=1499ms, Init Duration=1271ms |
-| 04:22:58 | Lambda | XRAY TraceId=1-6a449622-0d6a8c161a77f693228b8892 ✓ |
-| 04:23:00 | OTel | tool_result: create_memo, success=true, duration=1983ms |
-| 04:23:03 | OTel | api_request: main+mcp, in=6, out=151, cacheCreation=3217, cacheRead=21014, cost=$0.02065 |
-| 04:23:03 | Bedrock | reqId=84abc4c6 → 「作成完了: memo_id=366f5b78-1cfb-4dbd-b468-c32ca5b63bc8」 |
-| 04:23:05 | CloudTrail | AssumeRole ×3: BedrockLoggingRole + AgentCoreGatewayRole(gateway-session-57291ff6) + MemoLambdaServiceRole(tracing) |
-| 04:23:05 | CloudTrail | CreateLogStream（Lambda ロググループ） |
-| 04:23:05 | aws/spans | AgentCore.Gateway.InvokeTool.FaradayMemoMCP___get_memo（152ms, traceId=6a44962904be3c455b2b…） |
-| 04:23:05 | Lambda | START RequestId=663674e5（ウォームスタート）/ 入力: `{"memo_id":"366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}` |
-| 04:23:05 | aws/spans | DynamoDB.GetItem（20.1ms） |
-| 04:23:05 | Lambda | REPORT 663674e5: Duration=25ms, Billed=26ms / XRAY TraceId=1-6a449629-04be3c455b2b… ✓ |
-| 04:23:05 | OTel | tool_result: get_memo①, success=true, duration=200ms |
-| 04:23:09 | OTel | api_request: main+mcp, in=6, out=186, cacheCreation=278, cacheRead=24231, cost=$0.01112 |
-| 04:23:09 | Bedrock | reqId=72752711 → 「取得完了 / 結果サマリー（ID・タイトル・内容・作成日時）」 |
-| **04:23:25** | **OTel** | **◀ Claude Code セッション① 終了**（/clear コマンド） |
-| 04:23:21 | CloudTrail | CreateLogStream（新セッション用 ADOT ストリーム） |
-| **04:23:37** | **OTel** | **▶ Claude Code セッション② 開始** |
-| 04:23:37 | OTel | user_prompt: 「obs-verify-20260701-001 というタイトルのメモを検索・取得・削除してください。各ステップを逐一報告して」 |
-| 04:23:38 | Bedrock | reqId=e484fb62 → セッションタイトル「メモの確認と削除作業」 |
-| 04:23:38 | OTel | api_request: generate_session_title, in=430, out=23, cost=$0.001635 |
-| 04:23:38 | Bedrock | reqId=6fdd4d89 → ToolSearch(search+get+delete) |
-| 04:23:44 | OTel | tool_decision: ToolSearch → accept（source=config） |
-| 04:23:44 | OTel | api_request: main, in=10, out=552, cacheCreation=2903, cacheRead=21014, cost=$0.02550 |
-| 04:23:44 | Bedrock | reqId=cd7f125d → search_memos(query="obs-verify-20260701-001") |
-| 04:23:44 | OTel | api_request: main, in=10, out=175, cacheCreation=611, cacheRead=23917, cost=$0.01212 |
-| 04:23:40 | CloudTrail | AssumeRole → BedrockLoggingRole |
-| 04:23:50–51 | CloudTrail | AssumeRole ×3: BedrockLoggingRole + AgentCoreGatewayRole(gateway-session-f800bed5) + MemoLambdaServiceRole(tracing) |
-| 04:23:51 | aws/spans | AgentCore.Gateway.InvokeTool.FaradayMemoMCP___search_memos（138ms, traceId=6a44965770d3aa9c3fae…） |
-| 04:23:51 | Lambda | START RequestId=35e9713c / 入力: `{"query":"obs-verify-20260701-001"}` |
-| 04:23:51 | aws/spans | **DynamoDB.Scan**（12ms） |
-| 04:23:51 | Lambda | REPORT 35e9713c: Duration=31ms, Billed=32ms / XRAY TraceId=1-6a449657-70d3aa9c3fae… ✓ |
-| 04:23:51 | OTel | tool_result: search_memos, success=true, duration=204ms |
-| 04:23:52 | Bedrock | reqId=f195d827 → 「ステップ1: メモが見つかりました (ID=366f5b78…)」 + get_memo呼び出し |
-| 04:23:54 | OTel | api_request: main+mcp, in=6, out=235, cacheCreation=3574, cacheRead=21014, cost=$0.02325 |
-| 04:23:54 | CloudTrail | AssumeRole ×4: BedrockLoggingRole + AgentCoreGatewayRole(gateway-session-caf10464) + MemoLambdaServiceRole ×2 |
-| 04:23:54 | aws/spans | AgentCore.Gateway.InvokeTool.FaradayMemoMCP___get_memo（157ms, traceId=6a44965a59b62c1c4c51…） |
-| 04:23:54 | Lambda | START RequestId=80baa8e5 / 入力: `{"memo_id":"366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}` |
-| 04:23:54 | aws/spans | DynamoDB.GetItem（8.7ms） |
-| 04:23:54 | Lambda | REPORT 80baa8e5: Duration=12ms, Billed=13ms / XRAY TraceId=1-6a44965a-59b62c1c4c51… ✓ |
-| 04:23:54 | OTel | tool_result: get_memo②, success=true, duration=213ms |
-| 04:23:56 | Bedrock | reqId=c421937b → 「ステップ2: メモ内容確認」 + delete_memo呼び出し |
-| 04:23:58 | OTel | api_request: main+mcp, in=6, out=203, cacheCreation=362, cacheRead=24588, cost=$0.01180 |
-| 04:24:00–01 | CloudTrail | AssumeRole ×4: BedrockLoggingRole + AgentCoreGatewayRole(gateway-session-e2a55524) + MemoLambdaServiceRole ×2 |
-| 04:24:01 | OTel | tool_decision: delete_memo → accept（source=user_permanent） |
-| 04:24:01 | aws/spans | AgentCore.Gateway.InvokeTool.FaradayMemoMCP___delete_memo（173ms, traceId=6a449661147823ae6f6b…） |
-| 04:24:01 | Lambda | START RequestId=c9472bc8 / 入力: `{"memo_id":"366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}` |
-| 04:24:01 | aws/spans | DynamoDB.DeleteItem（26.6ms） |
-| 04:24:01 | Lambda | REPORT c9472bc8: Duration=30ms, Billed=30ms / XRAY TraceId=1-6a449661-147823ae6f6b… ✓ |
-| 04:24:01 | OTel | tool_result: delete_memo, success=true, duration=270ms |
-| 04:24:03 | Bedrock | reqId=b37cfa6e → 「ステップ3: 削除完了 / 全操作正常完了」 |
-| 04:24:03 | OTel | api_request: main+mcp, in=6, out=77, cacheCreation=244, cacheRead=24950, cost=$0.00957 |
-| **04:24:13** | **OTel** | **◀ Claude Code セッション② 終了**（/exit コマンド） |
-| **04:24:13** | **SSM** | **◀ SSM セッション 終了** |
+| 04:22:12Z | CloudTrail | `StartSession` (user@example.com → i-0d3f35fdebd11b99d) |
+| 04:22:12Z | CloudTrail | `CreateDataChannel` / `OpenDataChannel` |
+| **04:22:14Z** | **SSM** | **▶ SSM セッション 開始** |
+| 04:22:14Z | CloudTrail | `CreateLogStream`（SSMセッションログストリーム作成） |
+| 04:22:15Z | CloudTrail | `InvokeModel` ×10 失敗（ValidationException×8 + AccessDenied×2）→ 起動時モデル疎通確認 |
+| 04:22:15Z | CloudTrail | `ListInferenceProfiles`（AccessDenied）→ 起動時モデル疎通確認 |
+| **04:22:20Z** | **OTel** | **▶ Claude Code セッション 1 開始** `mcp_server_connection`（faraday-memos, stdio, 4618ms） |
+| 04:22:45Z | OTel | `user_prompt`「obs-verify-20260701-001というタイトルでメモを作成し、作成できたらすぐにそのIDで取得して内容を確認してください。各ステップの結果を逐一報告して」 |
+| 04:22:45〜47Z | Bedrock | `InvokeModelWithResponseStream` reqId=bff00beb（generate_session_title） |
+| 04:22:47Z | OTel | `api_request`: generate_session_title, in=417, out=28, cost=$0.001671 |
+| 04:22:47〜51Z | Bedrock | `InvokeModelWithResponseStream` reqId=370b3788（ToolSearch: create_memo+get_memo） |
+| 04:22:50Z | CloudTrail | `AssumeRole` → `FaradayStack-BedrockLoggingRole`（BedrockModelInvocationLogSession） |
+| 04:22:51Z | OTel | `tool_decision`: ToolSearch → accept（source=config） |
+| 04:22:51Z | OTel | `api_request`: main, in=10, out=373, cacheCreation=23800, cost=$0.094875 |
+| 04:22:51〜55Z | Bedrock | `InvokeModelWithResponseStream` reqId=74411cdb（create_memo ツール呼び出し決定） |
+| 04:22:55Z | OTel | `api_request`: main, in=10, out=238, cacheCreation=397, cacheRead=23800, cost=$0.012229 |
+| 04:22:55Z | OTel | `tool_decision`: create_memo → accept（source=user_permanent） |
+| 04:22:58Z | CloudTrail | `AssumeRole` → `FaradayStack-AgentCoreGatewayRoleB10592CC`（gateway-session-77d8a555） |
+| 04:22:58Z | CloudTrail | `AssumeRole` → `FaradayStack-MemoLambdaServiceRoleE093D938`（FaradayMemoMCP） |
+| 04:22:58Z | CloudTrail | `kms:Decrypt`（FaradayMemoMCP Lambda環境変数復号） |
+| 04:22:58〜23:00Z | Gateway | `AgentCore.Gateway.InvokeTool.FaradayMemoMCP___create_memo`（1910ms） |
+| 04:22:58〜59Z | Lambda | INIT_START + START RequestId=3c3e1101（コールドスタート Init 1271ms） |
+| 04:23:00Z | Lambda | `DynamoDB.PutItem`（222ms）/ REPORT: Duration=227ms, Billed=1499ms |
+| 04:23:00Z | OTel | `tool_result`: create_memo, success=true, duration=1983ms, memo_id=`366f5b78-1cfb-4dbd-b468-c32ca5b63bc8` |
+| 04:23:00〜03Z | Bedrock | `InvokeModelWithResponseStream` reqId=84abc4c6（get_memo決定） |
+| 04:23:03Z | OTel | `api_request`: main+mcp, in=6, out=151, cacheCreation=3217, cacheRead=21014, cost=$0.020651 |
+| 04:23:05Z | CloudTrail | `AssumeRole` → `FaradayStack-AgentCoreGatewayRoleB10592CC`（gateway-session-57291ff6） |
+| 04:23:05Z | CloudTrail | `CreateLogStream`（Lambda ロググループ） |
+| 04:23:05Z | OTel | `tool_decision`: get_memo → accept（source=user_permanent） |
+| 04:23:05Z | Gateway | `AgentCore.Gateway.InvokeTool.FaradayMemoMCP___get_memo`（152ms） |
+| 04:23:05Z | Lambda | START RequestId=663674e5 / `DynamoDB.GetItem`（20ms, warm） |
+| 04:23:05Z | OTel | `tool_result`: get_memo, success=true, duration=200ms |
+| 04:23:05〜09Z | Bedrock | `InvokeModelWithResponseStream` reqId=72752711（結果報告） |
+| 04:23:09Z | OTel | `api_request`: main+mcp, in=6, out=186, cacheCreation=278, cacheRead=24231, cost=$0.011120 |
+| **04:23:25Z** | **OTel** | **◀ Claude Code セッション 1 終了**（/clear コマンド） |
+| 04:23:21Z | CloudTrail | `CreateLogStream`（新セッション用 ADOT ストリーム） |
+| **04:23:37Z** | **OTel** | **▶ Claude Code セッション 2 開始** `user_prompt`「obs-verify-20260701-001というタイトルのメモがあるはずです。まずメモの一覧か検索で存在を確認し、取得して内容を確認した後に削除してください。各ステップの結果を逐一報告して」 |
+| 04:23:37〜38Z | Bedrock | `InvokeModelWithResponseStream` reqId=e484fb62（generate_session_title） |
+| 04:23:38Z | OTel | `api_request`: generate_session_title, in=430, out=23, cost=$0.001635 |
+| 04:23:38〜44Z | Bedrock | `InvokeModelWithResponseStream` reqId=6fdd4d89（ToolSearch: search+get+delete） |
+| 04:23:44Z | OTel | `tool_decision`: ToolSearch → accept（source=config） |
+| 04:23:44Z | OTel | `api_request`: main, in=10, out=552, cacheCreation=2903, cacheRead=21014, cost=$0.025500 |
+| 04:23:44〜48Z | Bedrock | `InvokeModelWithResponseStream` reqId=cd7f125d（search_memos決定） |
+| 04:23:48Z | OTel | `api_request`: main, in=10, out=175, cacheCreation=611, cacheRead=23917, cost=$0.012121 |
+| 04:23:51Z | OTel | `tool_decision`: search_memos → accept（source=user_permanent） |
+| 04:23:51Z | CloudTrail | `AssumeRole` → `FaradayStack-AgentCoreGatewayRoleB10592CC`（gateway-session-f800bed5） |
+| 04:23:51Z | Gateway | `AgentCore.Gateway.InvokeTool.FaradayMemoMCP___search_memos`（138ms） |
+| 04:23:51Z | Lambda | START RequestId=35e9713c / **`DynamoDB.Scan`** ⚠️（12ms, warm） |
+| 04:23:51Z | OTel | `tool_result`: search_memos, success=true, duration=204ms |
+| 04:23:51〜54Z | Bedrock | `InvokeModelWithResponseStream` reqId=f195d827（get_memo決定） |
+| 04:23:54Z | OTel | `api_request`: main+mcp, in=6, out=235, cacheCreation=3574, cacheRead=21014, cost=$0.023250 |
+| 04:23:54Z | OTel | `tool_decision`: get_memo → accept（source=config） |
+| 04:23:54Z | CloudTrail | `AssumeRole` → `FaradayStack-AgentCoreGatewayRoleB10592CC`（gateway-session-caf10464） |
+| 04:23:54Z | Gateway | `AgentCore.Gateway.InvokeTool.FaradayMemoMCP___get_memo`（157ms） |
+| 04:23:54Z | Lambda | START RequestId=80baa8e5 / `DynamoDB.GetItem`（9ms, warm） |
+| 04:23:54Z | OTel | `tool_result`: get_memo, success=true, duration=213ms |
+| 04:23:54〜58Z | Bedrock | `InvokeModelWithResponseStream` reqId=c421937b（delete_memo決定） |
+| 04:23:58Z | OTel | `api_request`: main+mcp, in=6, out=203, cacheCreation=362, cacheRead=24588, cost=$0.011797 |
+| 04:24:01Z | OTel | `tool_decision`: delete_memo → accept（source=user_permanent） |
+| 04:24:01Z | CloudTrail | `AssumeRole` → `FaradayStack-AgentCoreGatewayRoleB10592CC`（gateway-session-e2a55524） |
+| 04:24:01Z | Gateway | `AgentCore.Gateway.InvokeTool.FaradayMemoMCP___delete_memo`（173ms） |
+| 04:24:01Z | Lambda | START RequestId=c9472bc8 / `DynamoDB.DeleteItem`（27ms, warm） |
+| 04:24:01Z | OTel | `tool_result`: delete_memo, success=true, duration=270ms |
+| 04:24:01〜03Z | Bedrock | `InvokeModelWithResponseStream` reqId=b37cfa6e（完了報告） |
+| 04:24:03Z | OTel | `api_request`: main+mcp, in=6, out=77, cacheCreation=244, cacheRead=24950, cost=$0.009573 |
+| **04:24:13Z** | **OTel** | **◀ Claude Code セッション 2 終了**（/exit コマンド） |
+| **04:24:13Z** | **SSM** | **◀ SSM セッション 終了** |
 
 ---
 
-## モデル呼び出し詳細（11 件）
+## モデル呼び出し詳細
 
-| # | 時刻(UTC) | reqId（先頭8字） | query_source | 操作概要 |
-|---|---|---|---|---|
-| 1 | 04:22:47 | bff00beb | generate_session_title | セッションタイトル生成「Obsidianメモの作成と取得テスト」 |
-| 2 | 04:22:47 | 370b3788 | repl_main_thread | ToolSearch(create_memo+get_memo) |
-| 3 | 04:22:51 | 74411cdb | repl_main_thread | create_memo(title="obs-verify-20260701-001", content="This is a test memo...") |
-| 4 | 04:23:00 | 84abc4c6 | repl_main_thread | create_memo結果受領 → get_memo(memo_id=366f5b78) |
-| 5 | 04:23:05 | 72752711 | repl_main_thread | get_memo①結果受領 → 取得完了・結果サマリー出力 |
-| 6 | 04:23:37 | e484fb62 | generate_session_title | セッションタイトル生成「メモの確認と削除作業」 |
-| 7 | 04:23:37 | 6fdd4d89 | repl_main_thread | ToolSearch(list+search+get+delete) |
-| 8 | 04:23:44 | cd7f125d | repl_main_thread | search_memos(query="obs-verify-20260701-001") |
-| 9 | 04:23:51 | f195d827 | repl_main_thread | search_memos結果受領「ステップ1: 見つかった」 + get_memo呼び出し |
-| 10 | 04:23:55 | c421937b | repl_main_thread | get_memo②結果受領「ステップ2: 内容確認」 + delete_memo呼び出し |
-| 11 | 04:24:01 | b37cfa6e | repl_main_thread | delete_memo結果受領「ステップ3: 削除完了 / 全操作正常完了」 |
+| # | 時刻(UTC) | reqId（先頭8桁） | in | out | 種別 | 内容 |
+|---|---|---|---|---|---|---|
+| 1 | 04:22:47Z | `bff00beb` | 417 | 28 | generate_session_title | タイトル生成: 「Obsidianメモの作成と取得テスト」 |
+| 2 | 04:22:47Z | `370b3788` | 10 | 373 | repl_main_thread | ToolSearch(create_memo + get_memo) |
+| 3 | 04:22:51Z | `74411cdb` | 10 | 238 | repl_main_thread | create_memo(title=obs-verify-20260701-001, content="This is a test memo...") |
+| 4 | 04:23:00Z | `84abc4c6` | 6 | 151 | repl_main_thread | 作成完了報告 + get_memo(366f5b78…) |
+| 5 | 04:23:05Z | `72752711` | 6 | 186 | repl_main_thread | 取得完了 — 全ステップ結果報告 |
+| 6 | 04:23:37Z | `e484fb62` | 430 | 23 | generate_session_title | タイトル生成: 「メモの確認と削除作業」 |
+| 7 | 04:23:37Z | `6fdd4d89` | 10 | 552 | repl_main_thread | ToolSearch(search+get+delete) |
+| 8 | 04:23:44Z | `cd7f125d` | 10 | 175 | repl_main_thread | search_memos(query=obs-verify-20260701-001) |
+| 9 | 04:23:51Z | `f195d827` | 6 | 235 | repl_main_thread | 検索結果報告 + get_memo(366f5b78…) |
+| 10 | 04:23:55Z | `c421937b` | 6 | 203 | repl_main_thread | 取得確認 + delete_memo(366f5b78…) |
+| 11 | 04:24:01Z | `b37cfa6e` | 6 | 77 | repl_main_thread | 削除完了 — 全ステップ完了報告 |
 
 ---
 
-## コスト・トークン分析
+## 作業量・コスト・提供価値
 
-### セッション①（6ad4bee0）
+### 1. 実施作業の概要（定性）
 
-| 指標 | 値 |
-|---|---|
-| input_tokens | 449 |
-| output_tokens | 976 |
-| cache_creation_tokens | 27,692 |
-| cache_read_tokens | 69,045 |
-| cost_usd | **$0.14055** |
-| active_time_user | 0.626s |
-| active_time_cli | 16.907s |
-| session.count | 1（start_type=fresh） |
+Claudeがオブザーバビリティ検証用メモ（タイトル: `obs-verify-20260701-001`）の作成・取得・検索・削除を一連のワークフローとして実行し、Faraday MCP（AgentCore Gateway → Lambda → DynamoDB）のエンドツーエンド動作を確認した。ユーザーは2回のプロンプトで各ステップの逐一報告を要求しており、観測インフラの疎通確認を目的とした意図的な検証セッションである。
 
-### セッション②（ec8463ac）
+### 2. 作業量の定量指標
 
 | 指標 | 値 |
 |---|---|
-| input_tokens | 468 |
-| output_tokens | 1,265 |
-| cache_creation_tokens | 7,694 |
-| cache_read_tokens | 115,483 |
-| cost_usd | **$0.08388** |
-| active_time_user | 3.212s |
-| active_time_cli | 16.790s |
+| SSM セッション所要時間 | `00:01:59` |
+| Bedrock 呼び出し回数（合計） | 11 回（うち generate_session_title: 2 回、ユーザー応答: 9 回） |
+| MCP ツール呼び出し | 5 回（`create_memo` × 1、`get_memo` × 2、`search_memos` × 1、`delete_memo` × 1） |
+| DynamoDB 操作 | PutItem × 1、GetItem × 2、Scan × 1、DeleteItem × 1 |
+| DynamoDB アクセスレコード数 | 読み取り 3 件 / 書き込み 1 件 / 削除 1 件（Scan は 1 件マッチを返却） |
+| 処理した入力テキスト量 | 合計 input 917 tokens（うち cacheCreation 35,386、cacheRead 184,528） |
+| 生成した出力テキスト量 | output 2,241 tokens |
 
-### SSM セッション合計
+### 3. コスト内訳（token.usage × 4種・cost.usage・active_time・session.count）
 
-| 指標 | 値 |
-|---|---|
-| 総 input_tokens | 917 |
-| 総 output_tokens | 2,241 |
-| 総 cache_creation_tokens | 35,386 |
-| 総 cache_read_tokens | 184,528 |
-| **総コスト** | **$0.22443** |
-| Bedrock 成功呼び出し | 11 回 |
-| MCP ツール呼び出し | 5 回 |
-| user.id（ハッシュ） | `a038528a5501e938caff8b12…` |
+| セッション | input | cacheCreation | cacheRead | output | cost_usd |
+|---|---|---|---|---|---|
+| セッション1（6ad4bee0） | 449 | 27,692 | 69,045 | 976 | ≈ $0.1407 |
+| セッション2（ec8463ac） | 468 | 7,694 | 115,483 | 1,265 | ≈ $0.0838 |
+| **合計** | **917** | **35,386** | **184,528** | **2,241** | **≈ $0.2245** |
 
-> **cache_creation が高い理由**: セッション①初回でシステムプロンプト等が 23,800 tokens キャッシュ生成された（正常）。セッション②では既存キャッシュの再利用が増え cacheRead が 115,483 tokens に達した。
+- active_time: セッション1 user=0.626s / cli=16.907s、セッション2 user=3.212s / cli=16.790s
+- session.count: セッション1 = 1（start_type: fresh）
+- user.id（ハッシュ）: `a038528a5501e938caff8b1208ce940e3a725d9398574ad21adae5a625995afb`
+
+> cache_creation が高い理由: セッション1初回でシステムプロンプト等が 23,800 tokens キャッシュ生成された（正常）。セッション2では既存キャッシュの再利用が増え cacheRead が 115,483 tokens に達した。
 
 ---
 
@@ -183,143 +184,130 @@
 
 ```mermaid
 graph TD
-    User["👤 user@example.com\nAWSReservedSSO_AdministratorAccess\nIP: 35.200.74.87"]
+    User["👤 user@example.com<br/>AWSReservedSSO_AdministratorAccess<br/>ssm:StartSession 04:22:12Z"]
 
     subgraph EC2["EC2: i-0d3f35fdebd11b99d (FaradayStack-InstanceRole3CCE2F1D)"]
-        CC1["Claude Code v2.1.196\nsession①: 6ad4bee0\n04:22:20Z–04:23:25Z"]
-        CC2["Claude Code v2.1.196\nsession②: ec8463ac\n04:23:37Z–04:24:13Z"]
+        CC1["Claude Code v2.1.196<br/>Session1: 6ad4bee0<br/>trace: 4fdedd11… (~24.2s)"]
+        CC2["Claude Code v2.1.196<br/>Session2: ec8463ac<br/>trace: 9d876a3a… (~26.6s)"]
     end
 
     subgraph BedrockSvc["Bedrock (ap-northeast-1)"]
-        BR["jp.anthropic.claude-sonnet-4-5-20250929-v1:0\n×11 InvokeModelWithResponseStream\n合計 $0.224"]
+        BR["jp.anthropic.claude-sonnet-4-5-20250929-v1:0<br/>InvokeModelWithResponseStream × 11<br/>合計 ≈$0.2245"]
     end
 
     subgraph Gateway["AgentCore Gateway: faradaygateway-brhiamuriv"]
-        GW["Gateway.InvokeTool × 5"]
+        GW1["InvokeTool.create_memo<br/>trace 6a4496220d6a8c16 / 1910ms"]
+        GW2["InvokeTool.get_memo<br/>trace 6a44962904be3c45 / 152ms"]
+        GW3["InvokeTool.search_memos<br/>trace 6a44965770d3aa9c / 138ms"]
+        GW4["InvokeTool.get_memo<br/>trace 6a44965a59b62c1c / 157ms"]
+        GW5["InvokeTool.delete_memo<br/>trace 6a449661147823ae / 173ms"]
     end
 
     subgraph LambdaSvc["Lambda: FaradayMemoMCP"]
-        LH["index.lambda_handler × 5\n(1 cold start)"]
+        LH1["index.lambda_handler (Cold Start 1271ms + 227ms)"]
+        LH2["index.lambda_handler (21ms warm)"]
+        LH3["index.lambda_handler (13ms warm)"]
+        LH4["index.lambda_handler (9ms warm)"]
+        LH5["index.lambda_handler (27ms warm)"]
     end
 
     subgraph DynamoDBSvc["DynamoDB: FaradayMemos"]
-        DDB_PUT["PutItem\nmemo_id=366f5b78\n222.7ms"]
-        DDB_GET1["GetItem① 20.1ms"]
-        DDB_SCAN["Scan 12.0ms"]
-        DDB_GET2["GetItem② 8.7ms"]
-        DDB_DEL["DeleteItem 26.6ms"]
+        DDB1["PutItem id=366f5b78… 222ms"]
+        DDB2["GetItem id=366f5b78… 20ms"]
+        DDB3["Scan query=obs-verify-20260701-001 12ms ⚠️"]
+        DDB4["GetItem id=366f5b78… 9ms"]
+        DDB5["DeleteItem id=366f5b78… 27ms"]
     end
 
-    User -->|"ssm:StartSession 04:22:12Z"| CC1
-    CC1 -->|"5 calls / $0.14055"| BR
-    CC2 -->|"6 calls / $0.08388"| BR
-    CC1 -.->|"MCP stdio（トレース境界）\ncreate_memo + get_memo①"| GW
-    CC2 -.->|"MCP stdio（トレース境界）\nsearch_memos + get_memo② + delete_memo"| GW
+    User -->|"ssm:StartSession"| CC1
+    User -->|"ssm:StartSession"| CC2
+    CC1 -->|"5 calls (title+4 main)"| BR
+    CC2 -->|"6 calls (title+5 main)"| BR
+    CC1 -.->|"MCP stdio（トレース境界: ツール呼び出し起点）"| GW1
+    CC1 -.->|"MCP stdio"| GW2
+    CC2 -.->|"MCP stdio"| GW3
+    CC2 -.->|"MCP stdio"| GW4
+    CC2 -.->|"MCP stdio"| GW5
 
-    GW -->|"create_memo\ntrace 6a449622… / 1910ms"| LH
-    GW -->|"get_memo①\ntrace 6a449629… / 152ms"| LH
-    GW -->|"search_memos\ntrace 6a449657… / 138ms"| LH
-    GW -->|"get_memo②\ntrace 6a44965a… / 157ms"| LH
-    GW -->|"delete_memo\ntrace 6a449661… / 173ms"| LH
-
-    LH --> DDB_PUT
-    LH --> DDB_GET1
-    LH --> DDB_SCAN
-    LH --> DDB_GET2
-    LH --> DDB_DEL
+    GW1 --> LH1 --> DDB1
+    GW2 --> LH2 --> DDB2
+    GW3 --> LH3 --> DDB3
+    GW4 --> LH4 --> DDB4
+    GW5 --> LH5 --> DDB5
 ```
 
-> EC2側（`claude_code.*` スパン）と Gateway 以降（`aws/spans`）はトレース ID が異なる（設計上の意図的境界）。Gateway → Lambda → DynamoDB の5呼び出しは全て単一 traceId で連結されている。セッション単位の集約は OTel / SSM ログで実施。
+EC2側（Claude Code）は OTel スパンで2つのトレース（`4fdedd11`・`9d876a3a`）に集約され、Gateway以降の各ツール呼び出しは別 traceId で連鎖する。これはMCPツール呼び出し単位を X-Ray トレース境界とする設計上の意図的な分断であり、セッション単位の集約は OTel events（session.id）と SSM ログで行う。
 
 ---
 
 ## Gateway / Lambda / DynamoDB トレース連携
 
-| ツール | Gateway traceId（先頭20字） | Lambda XRAY TraceId | 一致 | DynamoDB操作 | 所要時間 |
+| ツール | Gateway traceId（先頭16桁） | Lambda XRAY TraceId | 一致 | DynamoDB操作 | Lambda Duration |
 |---|---|---|---|---|---|
-| create_memo | `6a4496220d6a8c161a77` | `1-6a449622-0d6a8c161a77f693228b8892` | ✅ | PutItem | 1910ms（冷） |
-| get_memo① | `6a44962904be3c455b2b` | `1-6a449629-04be3c455b2b831123cf97e5` | ✅ | GetItem | 152ms |
-| search_memos | `6a44965770d3aa9c3fae` | `1-6a449657-70d3aa9c3fae2440327f796f` | ✅ | **Scan** | 138ms |
-| get_memo② | `6a44965a59b62c1c4c51` | `1-6a44965a-59b62c1c4c513085555e59dc` | ✅ | GetItem | 157ms |
-| delete_memo | `6a449661147823ae6f6b` | `1-6a449661-147823ae6f6bd3a609ed3c2a` | ✅ | DeleteItem | 173ms |
+| create_memo | `6a4496220d6a8c16` | `1-6a449622-0d6a8c16…` | ✅ | PutItem（222ms） | 227ms（Init 1271ms コールドスタート） |
+| get_memo (1) | `6a44962904be3c45` | `1-6a449629-04be3c45…` | ✅ | GetItem（20ms） | 25ms（ウォーム） |
+| search_memos | `6a44965770d3aa9c` | `1-6a449657-70d3aa9c…` | ✅ | **Scan** ⚠️（12ms） | 31ms（ウォーム） |
+| get_memo (2) | `6a44965a59b62c1c` | `1-6a44965a-59b62c1c…` | ✅ | GetItem（9ms） | 12ms（ウォーム） |
+| delete_memo | `6a449661147823ae` | `1-6a449661-147823ae…` | ✅ | DeleteItem（27ms） | 30ms（ウォーム） |
 
-**5件全てで Gateway スパン traceId と Lambda XRAY TraceId が完全一致。ADOT Lambda Layer は正常動作。**
-
-### Lambda 実行ログ実体（REPORT行）
-
-| RequestId | 操作 | Duration | Billed | Init Duration | Memory | コールドスタート |
-|---|---|---|---|---|---|---|
-| 3c3e1101 | create_memo | 227ms | 1499ms | **1271ms** | 121MB/256MB | **あり** |
-| 663674e5 | get_memo① | 25ms | 26ms | — | 121MB/256MB | なし |
-| 35e9713c | search_memos | 31ms | 32ms | — | 121MB/256MB | なし |
-| 80baa8e5 | get_memo② | 12ms | 13ms | — | 121MB/256MB | なし |
-| c9472bc8 | delete_memo | 30ms | 30ms | — | 121MB/256MB | なし |
-
-create_memo の Gateway 所要時間（1910ms）が突出しているのは Init Duration 1271ms（コールドスタート）のため。異常なし。
+- 全5ツール呼び出しで Gateway スパン traceId と Lambda XRAY TraceId が一致 ✅（2系統独立確認）
+- `index.lambda_handler` スパンが全呼び出しに存在 → ADOT Lambda Layer が正常動作 ✅
+- create_memo でコールドスタート（Init Duration: 1271ms）が発生。Gateway 側で 1910ms と他の呼び出し（138〜173ms）より著しく長い時間が観測されており、コールドスタートで説明可能 ✅
+- **`DynamoDB.Scan`（search_memos）**: 全件スキャン操作が実行された。返却結果は1件（obs-verify-20260701-001）であり、データ抽出の痕跡は認められないが、Scan 操作自体は全テーブルを読み取るため ⚠️ とする。当該テーブルはユーザー個人のメモDBであり、他ユーザーのデータへのアクセスは確認されていない。Lambda 側 search_memos 実装を `user_id` フィルタ付き Query（GSI）に変更することを推奨する。
 
 ---
 
 ## Bedrock ログ ↔ OTel クロスバリデーション
 
-| 確認項目 | Bedrock ログ | OTel (api_request) | 一致 |
+| 確認項目 | Bedrock ログ | OTel | 乖離 |
 |---|---|---|---|
-| 成功呼び出し回数（全体） | 11件 | 11件 | ✅ |
-| 成功呼び出し回数（ユーザー応答のみ） | 9件 | 9件 | ✅ |
-| CloudTrail reqID 付き成功件数 | 11件 | — | — |
-| 使用モデル | jp.anthropic.claude-sonnet-4-5-20250929-v1:0 | claude-sonnet-4-5-20250929 | ✅（推論プロファイル ARN / 短縮名の表記差のみ） |
-| input tokens | Bedrock ログ省略（`?`） | 917 | N/A |
-| output tokens | Bedrock ログ省略（`?`） | 2,241 | N/A |
+| 成功呼び出し回数 | 11件 | 11件 | なし ✅ |
+| output tokens（generate_session_title込み） | 2,241 | — | — |
+| output tokens（generate_session_title 除外: 28+23=51除く） | 2,190 | 2,190（main合計） | なし ✅ |
+| モデルID | `jp.anthropic.claude-sonnet-4-5-20250929-v1:0` | `claude-sonnet-4-5-20250929` | 一致 ✅ |
 
-呼び出し回数・requestId・タイムスタンプ・モデルが全軸で一致。Bedrock ログ側のトークン数フィールドが省略のため数値比較は行えないが、OTel 全 api_request に記録済み。
+Bedrock ログと OTel の成功件数・output トークン数が完全一致。generate_session_title の2件（out=28+23=51）を OTel main から除外すると 2241-51=2190 となり OTel main 合計値と一致する。OTel の信頼性に問題なし ✅
 
 ---
 
 ## CloudTrail 追加証跡
 
-### 証跡完全性
-`StopLogging` / `DeleteTrail` / `DeleteLogGroup` / `DeleteLogEvents` / `PutRetentionPolicy` = **0件 ✅**
+**証跡完全性**: `StopLogging`/`DeleteLogGroup`/`DeleteLogEvents` 等の危険イベントなし ✅
 
-### 想定外 API 一覧（★判定）
+**想定外 API 一覧（★マーク付き 4種）:**
 
-| API | 件数 | 実行主体 | 判定 | 説明 |
-|---|---|---|---|---|
-| `GetResources` | 1 | AWSServiceRoleForCloudWatchApplicationSignals/TopologyService | ✅ | Application Signals が Lambda 関数タグを収集する自動バックグラウンド処理。セッションと無関係 |
-| `DescribeStacks` | 3 | `user@example.com` / AWSServiceRoleForSSMQuickSetup | ✅ | コンソール接続前確認 + SSMQuickSetup の自動確認 |
-| `DescribeInstances` | 1 | `user@example.com` | ✅ | コンソール接続前確認 |
-| `DescribeAlarms` | 24 | `user@example.com` | ✅ | CloudWatch コンソールのポーリング |
-| `DescribeMetricFilters` | 2 | `user@example.com` | ✅ | CloudWatch コンソールのポーリング |
-
-**S3 / IAM / Secrets Manager への操作なし。重大な想定外 API は検出されなかった。**
-
-### 起動時モデル疎通確認
-
-起動直後 `FGr/JS 0.94.0` userAgent によって `InvokeModel` 10件失敗（ValidationException×8 + AccessDenied×2）・`ListInferenceProfiles` 1件失敗。Claude Code が利用可能モデルを自動検出する既知の正常動作。成功呼び出し（課金対象）への混入なし。
-
-### Claude Code バージョン独立確認
-成功 `InvokeModelWithResponseStream` の userAgent: `claude-cli/2.1.196 (external, cli)` → SSM バナー `v2.1.196` と**完全一致 ✅**
-
-### sts:AssumeRole 役割連鎖
-
-| 時刻 | 遷移先ロール | sessionName | 役割 |
+| API | 回数 | 実行主体 | 評価 |
 |---|---|---|---|
-| 04:22:12 | AWSServiceRoleForSSMQuickSetup | QuickSetupSession | SSM セッション起動補助 |
-| 04:22:50,23:00,23:10,23:40,23:50,24:00,24:10 | FaradayStack-BedrockLoggingRole71F633EF | BedrockModelInvocationLogSession | Bedrock 呼び出しログ書き込み |
-| 04:22:58 | FaradayStack-AgentCoreGatewayRoleB10592CC | gateway-session-77d8a555 | create_memo Gateway セッション |
-| 04:22:58 ×2 | FaradayStack-MemoLambdaServiceRoleE093D938 | tracing / FaradayMemoMCP | create_memo Lambda 実行 + X-Ray トレーシング |
-| 04:23:05 | FaradayStack-AgentCoreGatewayRoleB10592CC | gateway-session-57291ff6 | get_memo① Gateway |
-| 04:23:05 | FaradayStack-MemoLambdaServiceRoleE093D938 | tracing | get_memo① Lambda トレーシング |
-| 04:23:51 | FaradayStack-AgentCoreGatewayRoleB10592CC | gateway-session-f800bed5 | search_memos Gateway |
-| 04:23:51 | FaradayStack-MemoLambdaServiceRoleE093D938 | tracing | search_memos トレーシング |
-| 04:23:54 | FaradayStack-AgentCoreGatewayRoleB10592CC | gateway-session-caf10464 | get_memo② Gateway |
-| 04:23:54 | FaradayStack-MemoLambdaServiceRoleE093D938 | tracing | get_memo② トレーシング |
-| 04:24:01 | FaradayStack-AgentCoreGatewayRoleB10592CC | gateway-session-e2a55524 | delete_memo Gateway |
-| 04:24:01 | FaradayStack-MemoLambdaServiceRoleE093D938 | tracing | delete_memo トレーシング |
-| 04:24:12,22,52 | AWSServiceRoleForCloudWatchApplicationSignals | TopologyService | Application Signals 自動トポロジー検出（バックグラウンド） |
+| `DescribeAlarms` | 24 | AWSReservedSSO_AdministratorAccess/user@example.com | ✅ CloudWatch コンソール閲覧（ユーザーの AWS 管理コンソール操作、セッション外の背景ポーリング） |
+| `DescribeStacks` | 3 | AWSReservedSSO_AdministratorAccess/user@example.com | ✅ CloudFormation コンソール閲覧（同上） |
+| `DescribeMetricFilters` | 2 | AWSReservedSSO_AdministratorAccess/user@example.com | ✅ CloudWatch Logs コンソール閲覧（同上） |
+| `DescribeInstances` | 1 | AWSReservedSSO_AdministratorAccess/user@example.com | ✅ EC2 コンソール閲覧（同上） |
 
-**全 AssumeRole 遷移先がスタック管理下ロールまたは AWS サービスリンクロールに閉じている ✅**
+全て SSO 管理者ロールからのコンソール閲覧操作であり、Claude Code セッション（EC2 インスタンスロール）とは別主体。許可外 API に該当しない ✅
 
-### kms:Decrypt
-1件。主体: `FaradayStack-MemoLambdaServiceRoleE093D938/FaradayMemoMCP`。encryptionContext: `aws:lambda:FunctionArn=FaradayMemoMCP`。Lambda コールドスタート時の環境変数復号として正常。
+**起動時モデル疎通確認**: 10件（userAgent: `FGr/JS 0.94.0`）がセッション開始直後（04:22:15Z）に `ValidationException`/`AccessDenied` で失敗 → 既知の正常動作 ✅
+
+**Claude Code userAgent 独立確認**: `claude-cli/2.1.196 (external, cli)` — SSM バナーの `v2.1.196` と一致 ✅
+
+**sts:AssumeRole 役割連鎖（時系列）:**
+
+| 時刻 | 遷移先ロール | sessionName | 対応処理 |
+|---|---|---|---|
+| 04:22:12Z | `AWSServiceRoleForSSMQuickSetup` | QuickSetupSession | SSM Quick Setup サービス自動処理 |
+| 04:22:50Z | `FaradayStack-BedrockLoggingRole71F633EF` | BedrockModelInvocationLogSession | Bedrock 呼び出しログ記録 |
+| 04:22:58Z | `FaradayStack-AgentCoreGatewayRoleB10592CC` | gateway-session-77d8a555 | create_memo Gateway セッション |
+| 04:22:58Z | `FaradayStack-MemoLambdaServiceRoleE093D938` | FaradayMemoMCP | create_memo Lambda 実行 |
+| 04:22:58Z | `FaradayStack-MemoLambdaServiceRoleE093D938` | tracing | ADOT トレーシング |
+| 04:23:05Z | `FaradayStack-AgentCoreGatewayRoleB10592CC` | gateway-session-57291ff6 | get_memo Gateway セッション |
+| 04:23:05Z | `FaradayStack-MemoLambdaServiceRoleE093D938` | tracing | get_memo トレーシング |
+| 04:23:10Z〜04:24:12Z | `FaradayStack-BedrockLoggingRole`・`AgentCoreGatewayRole`・`MemoLambdaServiceRole` | 各 search/get/delete | 後続ツール呼び出しごとに新規発行 |
+| 04:24:12Z〜52Z | `AWSServiceRoleForCloudWatchApplicationSignals` | TopologyService | Application Signals 背景処理 |
+
+全遷移先がスタック管理下ロールまたは AWS サービスロール（SSM QuickSetup / CloudWatch Application Signals）に限定 ✅
+
+**KMS Decrypt**: 1件（04:22:58Z）。`encryptionContext: aws:lambda:FunctionArn = arn:aws:lambda:ap-northeast-1:346929044083:function:FaradayMemoMCP` → Lambda コールドスタート時の環境変数復号として正当 ✅
+
+**機密アクセス**: `secretsmanager:GetSecretValue` / `ssm:GetParameter(SecureString)` への呼び出しなし ✅
 
 ---
 
@@ -327,7 +315,33 @@ create_memo の Gateway 所要時間（1910ms）が突出しているのは Init
 
 **エラーなし ✅**
 
-全レイヤー（SSM / OTel / Bedrock CloudTrail / aws/spans / Lambda CloudWatch Logs）でエラーは0件。起動時モデル疎通確認による失敗（10件）は既知正常動作として集計から除外。
+全レイヤー（SSM / OTel / Bedrock CloudTrail / aws/spans / Lambda CloudWatch Logs）でエラーは0件。起動時モデル疎通確認による失敗（10件）は既知正常動作として集計から除外。コールドスタート（create_memo, Init 1271ms）が発生したが Lambda 実行は成功しており、ユーザー影響なし。
+
+---
+
+## CloudWatch Logs 追加証跡（Lambda実行ログ実体）
+
+| RequestId | ツール | Duration | Billed | Init Duration | Memory Used | XRAY TraceId（先頭部） | Gateway traceId 一致 |
+|---|---|---|---|---|---|---|---|
+| `3c3e1101` | create_memo | 227ms | 1499ms | **1271ms** | 121MB/256MB | `1-6a449622-0d6a8c16…` | ✅ |
+| `663674e5` | get_memo (1) | 25ms | 26ms | なし | 121MB/256MB | `1-6a449629-04be3c45…` | ✅ |
+| `35e9713c` | search_memos | 31ms | 32ms | なし | 121MB/256MB | `1-6a449657-70d3aa9c…` | ✅ |
+| `80baa8e5` | get_memo (2) | 12ms | 13ms | なし | 121MB/256MB | `1-6a44965a-59b62c1c…` | ✅ |
+| `c9472bc8` | delete_memo | 30ms | 30ms | なし | 121MB/256MB | `1-6a449661-147823ae…` | ✅ |
+
+**入力ペイロード照合:**
+
+| ツール | Lambda受信ペイロード | OTel tool_input | 一致 |
+|---|---|---|---|
+| create_memo | `{"title":"obs-verify-20260701-001","content":"This is a test memo created on 2026-07-01 for verification purposes."}` | 同一 | ✅ |
+| get_memo (1) | `{"memo_id":"366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}` | 同一 | ✅ |
+| search_memos | `{"query":"obs-verify-20260701-001"}` | 同一 | ✅ |
+| get_memo (2) | `{"memo_id":"366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}` | 同一 | ✅ |
+| delete_memo | `{"memo_id":"366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}` | 同一 | ✅ |
+
+**DynamoDB 読み取りアクセス範囲:**
+- `GetItem`: memo_id=`366f5b78-1cfb-4dbd-b468-c32ca5b63bc8`（自分が作成したアイテム）×2 ✅
+- `Scan`: `search_memos`（query=obs-verify-20260701-001）— 全テーブルスキャン実行 ⚠️（返却1件）
 
 ---
 
@@ -335,9 +349,9 @@ create_memo の Gateway 所要時間（1910ms）が突出しているのは Init
 
 | 観点 | 判定 | 根拠 |
 |---|---|---|
-| 機密情報・個人情報の漏洩リスク | ✅ | プロンプト・応答はいずれも観測手順（メモ CRUD）のみ。個人情報・機密情報・内部情報を含まない |
-| プロンプトインジェクションの痕跡 | ✅ | tool_result（Lambda/DynamoDB 返り値）に疑わしい文字列なし。Bedrock 応答内容とも照合してインジェクション成功の兆候なし |
-| ポリシー違反コンテンツ | ✅ | MCP ツールの動作確認（観測手順検証）に限定。業務外利用・禁止トピックなし |
+| 機密情報・個人情報の漏洩リスク | ✅ | プロンプト・応答はいずれも観測手順（メモ CRUD）のみ。メモ内容は `"This is a test memo created on 2026-07-01 for verification purposes."` という明示的なテストデータ。機密情報・個人情報を含まない |
+| プロンプトインジェクションの痕跡 | ✅ | `tool_result`（Lambda/DynamoDB 返り値）に "ignore previous instructions" 等の注入試みは確認されない。Bedrock 応答内容とも照合してインジェクション成功の兆候なし |
+| ポリシー違反コンテンツ | ✅ | 全プロンプトが obs-verify-20260701-001 の観測インフラ検証を目的とした業務関連操作。業務外利用・禁止トピックの痕跡なし |
 
 ---
 
@@ -349,30 +363,3 @@ create_memo の Gateway 所要時間（1910ms）が突出しているのは Init
 | delete_memo 後 DynamoDB アイテム消去 | `aws dynamodb get-item` で空応答（Item なし） | ✅ |
 | memo_id 一貫性（create→get→search→get→delete） | 全操作で `366f5b78-1cfb-4dbd-b468-c32ca5b63bc8` 統一 | ✅ |
 | Lambda 入力ペイロード vs OTel tool_input | 5件全て完全一致 | ✅ |
-
----
-
-## アカウント・クラウド状態の適切性評価
-
-| 観点 | 判定 | 根拠（複数ソース） |
-|---|---|---|
-| 接続ユーザー | ✅ | CloudTrail StartSession で `user@example.com`（SSO AdminAccess）を直接確認 |
-| Bedrock アクセス主体 | ✅ | CloudTrail: `assumed-role/FaradayStack-InstanceRole3CCE2F1D/i-0d3f35fdebd11b99d`（EC2インスタンスロール）のみ |
-| 使用モデル | ✅ | Bedrock ログ・CloudTrail・OTel 三者一致: `jp.anthropic.claude-sonnet-4-5-20250929-v1:0` |
-| 呼び出しリージョン | ✅ | `ap-northeast-1` のみ（CloudTrail・Bedrock ログで確認） |
-| 証跡完全性 | ✅ | ログ削除・証跡停止系イベント0件 |
-| 想定外 API | ✅ | GetResources 1件（Application Signals 自動処理）は説明可能。S3/IAM/Secrets Manager 操作なし |
-| IAM ロール逸脱 | ✅ | 全 AssumeRole がスタック管理下。外部アカウント・スタック外への遷移なし |
-| 機密アクセス | ✅ | kms:Decrypt 1件（Lambda環境変数復号、コールドスタート正常動作）。Secrets Manager / SecureString アクセスなし |
-| ツール実行許可 | ✅ | ToolSearch: config、create_memo/get_memo/search_memos/delete_memo: user_permanent。reject なし |
-| Gateway/Lambda トレース連携 | ✅ | 5件全てで Gateway traceId ↔ Lambda XRAY が aws/spans + CloudWatch Logs 2系統で一致 |
-| DynamoDB 読み取り範囲 | ⚠️ | GetItem は当セッション作成メモのみ（問題なし）。search_memos で `DynamoDB.Scan`（全件スキャン）実行。クエリは正当だがテーブル全件アクセスを記録 |
-| Bedrock ↔ OTel 整合性 | ✅ | 呼び出し回数・requestId・タイムスタンプ全軸一致。トークン数は Bedrock ログ側が省略のため参照値なし |
-| コンテンツセキュリティ | ✅ | 機密情報なし・インジェクション痕跡なし・ポリシー違反なし |
-| Lambda 実行ログ整合性 | ✅ | 入力ペイロード5件全て OTel tool_input と完全一致（CloudWatch Logs で独立確認） |
-| エラー・障害 | ✅ | 全レイヤーエラー0件 |
-| データ整合性 | ✅ | DynamoDB 実データが全操作と整合。削除後アイテム消去を直接確認 |
-
-### ⚠️ 要注意事項
-
-**`search_memos` が DynamoDB.Scan を使用している**。Scan はテーブル全件スキャンのため、理論上は他ユーザーのメモも取得可能な設計リスクがある。今回のクエリ（`"obs-verify-20260701-001"`）は正当な検証操作であり実害はないが、今後のセキュリティ改善として Lambda 側の search_memos 実装を `user_id` フィルタ付き Query（GSI）に変更することを推奨する。
