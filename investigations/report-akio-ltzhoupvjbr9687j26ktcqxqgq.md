@@ -220,7 +220,7 @@ graph TD
     end
 
     User -->|"ssm:StartSession"| CC1
-    User -->|"ssm:StartSession"| CC2
+    CC1 -.->|"/clear → resume"| CC2
     CC1 -->|"5 calls (title+4 main)"| BR
     CC2 -->|"6 calls (title+5 main)"| BR
     CC1 -.->|"MCP stdio（トレース境界: ツール呼び出し起点）"| GW1
