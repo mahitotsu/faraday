@@ -195,45 +195,20 @@ graph TD
         BR["jp.anthropic.claude-sonnet-4-5-20250929-v1:0<br/>InvokeModelWithResponseStream × 11<br/>合計 ≈$0.2245"]
     end
 
-    subgraph Gateway["AgentCore Gateway: faradaygateway-brhiamuriv"]
-        GW1["InvokeTool.create_memo<br/>trace 6a4496220d6a8c16 / 1910ms"]
-        GW2["InvokeTool.get_memo<br/>trace 6a44962904be3c45 / 152ms"]
-        GW3["InvokeTool.search_memos<br/>trace 6a44965770d3aa9c / 138ms"]
-        GW4["InvokeTool.get_memo<br/>trace 6a44965a59b62c1c / 157ms"]
-        GW5["InvokeTool.delete_memo<br/>trace 6a449661147823ae / 173ms"]
-    end
+    GW["AgentCore Gateway<br/>faradaygateway-brhiamuriv<br/>InvokeTool × 5"]
 
-    subgraph LambdaSvc["Lambda: FaradayMemoMCP"]
-        LH1["index.lambda_handler (Cold Start 1271ms + 227ms)"]
-        LH2["index.lambda_handler (21ms warm)"]
-        LH3["index.lambda_handler (13ms warm)"]
-        LH4["index.lambda_handler (9ms warm)"]
-        LH5["index.lambda_handler (27ms warm)"]
-    end
+    LH["Lambda: FaradayMemoMCP<br/>index.lambda_handler × 5<br/>（1× Cold Start 1271ms）"]
 
-    subgraph DynamoDBSvc["DynamoDB: FaradayMemos"]
-        DDB1["PutItem id=366f5b78… 222ms"]
-        DDB2["GetItem id=366f5b78… 20ms"]
-        DDB3["Scan query=obs-verify-20260701-001 12ms ⚠️"]
-        DDB4["GetItem id=366f5b78… 9ms"]
-        DDB5["DeleteItem id=366f5b78… 27ms"]
-    end
+    DDB["DynamoDB: FaradayMemos<br/>PutItem × 1 / GetItem × 2<br/>Scan × 1 ⚠️ / DeleteItem × 1"]
 
     User -->|"ssm:StartSession"| CC1
     CC1 -.->|"/clear → resume"| CC2
     CC1 -->|"5 calls (title+4 main)"| BR
     CC2 -->|"6 calls (title+5 main)"| BR
-    CC1 -.->|"MCP stdio（トレース境界: ツール呼び出し起点）"| GW1
-    CC1 -.->|"MCP stdio"| GW2
-    CC2 -.->|"MCP stdio"| GW3
-    CC2 -.->|"MCP stdio"| GW4
-    CC2 -.->|"MCP stdio"| GW5
+    CC1 -.->|"create_memo / get_memo<br/>（MCP stdio・トレース境界）"| GW
+    CC2 -.->|"search_memos / get_memo / delete_memo<br/>（MCP stdio・トレース境界）"| GW
 
-    GW1 --> LH1 --> DDB1
-    GW2 --> LH2 --> DDB2
-    GW3 --> LH3 --> DDB3
-    GW4 --> LH4 --> DDB4
-    GW5 --> LH5 --> DDB5
+    GW --> LH --> DDB
 ```
 
 EC2側（Claude Code）は OTel スパンで2つのトレース（`4fdedd11`・`9d876a3a`）に集約され、Gateway以降の各ツール呼び出しは別 traceId で連鎖する。これはMCPツール呼び出し単位を X-Ray トレース境界とする設計上の意図的な分断であり、セッション単位の集約は OTel events（session.id）と SSM ログで行う。
