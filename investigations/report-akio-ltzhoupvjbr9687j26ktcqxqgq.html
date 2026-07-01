@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>調査レポート — user@example.com-ltzhoupvjbr9687j26ktcqxqgq</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --accent:      #1a3a5c;
+      --accent-light:#2e6da4;
+      --warn-bg:     #fff8e1;
+      --warn-border: #f9a825;
+      --warn-text:   #7b5a00;
+      --ok-text:     #1a6e2e;
+      --border:      #d0d7de;
+      --row-alt:     #f6f8fa;
+      --font:        "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      --mono:        "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.65;
+      color: #24292f;
+      background: #f0f2f5;
+    }
+    .page {
+      max-width: 1100px;
+      margin: 32px auto;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    }
+
+    /* ── Header ── */
+    .report-header {
+      background: var(--accent);
+      color: #fff;
+      padding: 28px 36px 24px;
+    }
+    .report-header .label {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .7;
+      margin-bottom: 6px;
+    }
+    .report-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: .01em;
+      margin-bottom: 14px;
+      word-break: break-all;
+    }
+    .meta-grid {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      opacity: .9;
+    }
+    .meta-grid dt { opacity: .65; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .meta-grid dd { font-weight: 600; font-family: var(--mono); font-size: 12px; }
+
+    /* ── Warning banner ── */
+    .warn-banner {
+      background: var(--warn-bg);
+      border-left: 4px solid var(--warn-border);
+      padding: 14px 20px;
+      margin: 24px 36px 0;
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--warn-text);
+    }
+    .warn-banner strong { display: block; margin-bottom: 4px; font-size: 13px; }
+
+    /* ── Section layout ── */
+    .body-content { padding: 28px 36px 48px; }
+    section { margin-top: 40px; }
+    section:first-child { margin-top: 0; }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 6px;
+      margin-bottom: 16px;
+    }
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #444;
+      margin: 20px 0 10px;
+    }
+    p { margin-bottom: 10px; }
+    ul { padding-left: 1.4em; margin-bottom: 10px; }
+    li { margin-bottom: 4px; }
+
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #edf0f3;
+      border: 1px solid #d0d7de;
+      border-radius: 3px;
+      padding: 1px 5px;
+      word-break: break-all;
+    }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead tr { background: var(--accent); color: #fff; }
+    thead th {
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even) { background: var(--row-alt); }
+    tbody tr:hover { background: #eaf2ff; }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    /* section-header rows inside eval table */
+    tbody tr.section-row td {
+      background: #e8edf3;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    tbody tr.warn-row td { background: var(--warn-bg); }
+    tbody tr.warn-row td:first-child { font-weight: 600; }
+
+    .verdict-ok   { color: var(--ok-text); font-weight: 700; font-size: 15px; }
+    .verdict-warn { color: var(--warn-border); font-weight: 700; font-size: 15px; }
+    .verdict-head { font-weight: 700; color: var(--accent); }
+
+    /* ── Mermaid wrapper ── */
+    .mermaid-wrap {
+      background: #f6f8fa;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+      margin-top: 12px;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    /* ── Cost callout ── */
+    .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin: 12px 0 20px;
+    }
+    .cost-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      text-align: center;
+    }
+    .cost-card .val { font-size: 22px; font-weight: 700; color: var(--accent-light); }
+    .cost-card .lbl { font-size: 11px; color: #666; margin-top: 2px; }
+
+    /* ── Timeline ── */
+    .timeline-note {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    td .event-key  { font-weight: 700; }
+    td .event-warn { color: var(--warn-text); font-weight: 700; }
+
+    /* ── Footer ── */
+    .report-footer {
+      border-top: 1px solid var(--border);
+      padding: 14px 36px;
+      font-size: 11px;
+      color: #999;
+      display: flex;
+      justify-content: space-between;
+      background: #fafbfc;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ====== Header ====== -->
+  <header class="report-header">
+    <div class="label">Faraday — 調査レポート</div>
+    <h1>user@example.com-ltzhoupvjbr9687j26ktcqxqgq</h1>
+    <dl class="meta-grid">
+      <div><dt>調査日</dt><dd>2026-07-01</dd></div>
+      <div><dt>SSM セッション</dt><dd>user@example.com-ltzhoupvjbr9687j26ktcqxqgq</dd></div>
+      <div><dt>期間</dt><dd>04:22:12Z – 04:24:15Z（約 2 分 3 秒）</dd></div>
+      <div><dt>総合判定</dt><dd>⚠️ 要注意（1件）</dd></div>
+    </dl>
+  </header>
+
+  <!-- ====== Warning banner ====== -->
+  <div class="warn-banner">
+    <strong>⚠️ 要注意事項</strong>
+    <code>search_memos</code> が <code>DynamoDB.Scan</code>（全件取得）を実行した。Lambda の search_memos 実装が Scan を使用しているため、FaradayMemos テーブル内の全アイテムが取得対象となる。当該セッションでは自分以外のデータへのアクセスが生じた可能性がある。Lambda の実装をフィルタ付き Query または GSI に変更することを推奨。
+  </div>
+
+  <div class="body-content">
+
+    <!-- ====== 総合評価 ====== -->
+    <section>
+      <h2>総合評価</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>観点</th><th>判定</th><th>根拠セクション</th></tr></thead>
+          <tbody>
+            <tr><td class="verdict-head">総合判定</td><td class="verdict-warn">⚠️ 要注意（1件）</td><td>—</td></tr>
+            <tr class="section-row"><td colspan="3">セッション基本情報</td></tr>
+            <tr><td>接続ユーザー・接続元IP</td><td class="verdict-ok">✅</td><td>セッション概要テーブル</td></tr>
+            <tr class="section-row"><td colspan="3">CloudTrail / IAM 監査</td></tr>
+            <tr><td>証跡完全性（ログ削除・証跡停止の有無）</td><td class="verdict-ok">✅</td><td>CloudTrail 追加証跡</td></tr>
+            <tr><td>Bedrock アクセス主体（EC2 インスタンスロールのみか）</td><td class="verdict-ok">✅</td><td>CloudTrail 追加証跡</td></tr>
+            <tr><td>使用モデル（許可リスト内か）</td><td class="verdict-ok">✅</td><td>CloudTrail 追加証跡</td></tr>
+            <tr><td>呼び出しリージョン（ap-northeast-1 のみか）</td><td class="verdict-ok">✅</td><td>CloudTrail 追加証跡</td></tr>
+            <tr><td>想定外 API（S3/IAM/Secrets Manager 等の有無）</td><td class="verdict-ok">✅</td><td>CloudTrail 追加証跡</td></tr>
+            <tr><td>IAM ロールチェーン（スタック管理下に閉じているか）</td><td class="verdict-ok">✅</td><td>CloudTrail 追加証跡</td></tr>
+            <tr><td>機密アクセス（Secrets Manager / SecureString）</td><td class="verdict-ok">✅</td><td>CloudTrail 追加証跡</td></tr>
+            <tr class="section-row"><td colspan="3">ツール実行制御</td></tr>
+            <tr><td>ツール実行許可（ユーザー明示許可を経ているか）</td><td class="verdict-ok">✅</td><td>ツール実行許可評価</td></tr>
+            <tr class="section-row"><td colspan="3">ログ整合性・トレース</td></tr>
+            <tr><td>Gateway/Lambda トレース連携（traceId 一致）</td><td class="verdict-ok">✅</td><td>Gateway/Lambda/DynamoDB トレース連携</td></tr>
+            <tr class="warn-row"><td>DynamoDB 読み取り範囲（Scan の有無・対象範囲）</td><td class="verdict-warn">⚠️</td><td>Gateway/Lambda/DynamoDB トレース連携</td></tr>
+            <tr><td>Bedrock ↔ OTel 整合性（呼び出し回数・トークン数）</td><td class="verdict-ok">✅</td><td>Bedrock ↔ OTel クロスバリデーション</td></tr>
+            <tr><td>Lambda 実行ログ整合性（入力ペイロード一致）</td><td class="verdict-ok">✅</td><td>CloudWatch Logs 追加証跡</td></tr>
+            <tr class="section-row"><td colspan="3">セキュリティ・品質・データ</td></tr>
+            <tr><td>コンテンツセキュリティ（機密情報・インジェクション）</td><td class="verdict-ok">✅</td><td>コンテンツセキュリティ評価</td></tr>
+            <tr><td>エラー・障害（未解消エラーの有無）</td><td class="verdict-ok">✅</td><td>エラー・障害分析</td></tr>
+            <tr><td>データ整合性（DynamoDB 実データとの整合）</td><td class="verdict-ok">✅</td><td>データ整合性</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====== セッション概要 ====== -->
+    <section>
+      <h2>セッション概要テーブル</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>項目</th><th>値</th></tr></thead>
+          <tbody>
+            <tr><td>SSM セッション ID</td><td><code>user@example.com-ltzhoupvjbr9687j26ktcqxqgq</code></td></tr>
+            <tr><td>SSM セッション 開始</td><td>2026-07-01T04:22:12Z</td></tr>
+            <tr><td>SSM セッション 終了</td><td>2026-07-01T04:24:15Z（推定）</td></tr>
+            <tr><td>SSM セッション 期間</td><td>約 2 分 3 秒</td></tr>
+            <tr><td>SSM セッション ドキュメント</td><td><code>FaradayStack-ClaudeSessionDocument-5YfSwyzLMCdv</code></td></tr>
+            <tr><td>ユーザー</td><td>user@example.com（SSO principalId: <code>AROAVBRUVDJZWM237AOWO</code>）</td></tr>
+            <tr><td>IAM ロール</td><td><code>AWSReservedSSO_AdministratorAccess_9445badae67c7bfe</code></td></tr>
+            <tr><td>接続元 IP</td><td><code>35.200.74.87</code>（Google Cloud IP レンジ）</td></tr>
+            <tr><td>EC2 インスタンス</td><td><code>i-0d3f35fdebd11b99d</code></td></tr>
+            <tr><td>EC2 インスタンスロール</td><td><code>FaradayStack-InstanceRole3CCE2F1D-C6MH8DxsIsIh</code></td></tr>
+            <tr><td>AWS アカウント</td><td><code>346929044083</code></td></tr>
+            <tr><td>リージョン</td><td><code>ap-northeast-1</code></td></tr>
+            <tr class="section-row"><td colspan="2">Claude Code セッション 1</td></tr>
+            <tr><td>セッション ID（S1）</td><td><code>6ad4bee0-301f-4dc8-b1cc-1b631e903fa5</code>（fresh）</td></tr>
+            <tr><td>S1 開始</td><td>2026-07-01T04:22:20Z</td></tr>
+            <tr><td>S1 終了</td><td>2026-07-01T04:23:25Z（/clear）</td></tr>
+            <tr><td>S1 期間</td><td>約 1 分 5 秒</td></tr>
+            <tr class="section-row"><td colspan="2">Claude Code セッション 2</td></tr>
+            <tr><td>セッション ID（S2）</td><td><code>ec8463ac-75f8-4d58-a7fa-ed54b7169a3b</code>（resume after /clear）</td></tr>
+            <tr><td>S2 開始</td><td>2026-07-01T04:23:37Z</td></tr>
+            <tr><td>S2 終了</td><td>2026-07-01T04:24:13Z（/exit）</td></tr>
+            <tr><td>S2 期間</td><td>約 36 秒</td></tr>
+            <tr><td>Claude Code バージョン</td><td><code>v2.1.196</code></td></tr>
+            <tr><td>使用モデル</td><td><code>jp.anthropic.claude-sonnet-4-5-20250929-v1:0</code></td></tr>
+            <tr><td>ユーザー ID（ハッシュ）</td><td><code>a038528a5501e938caff8b1208ce940e3a725d9398574ad21adae5a625995afb</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====== 作業量・コスト ====== -->
+    <section>
+      <h2>作業量・コスト・提供価値</h2>
+
+      <div class="cost-grid">
+        <div class="cost-card"><div class="val">$0.2244</div><div class="lbl">総コスト</div></div>
+        <div class="cost-card"><div class="val">11</div><div class="lbl">Bedrock 呼び出し回数</div></div>
+        <div class="cost-card"><div class="val">5</div><div class="lbl">MCP ツール呼び出し</div></div>
+        <div class="cost-card"><div class="val">917</div><div class="lbl">input tokens</div></div>
+        <div class="cost-card"><div class="val">2,241</div><div class="lbl">output tokens</div></div>
+        <div class="cost-card"><div class="val">184,528</div><div class="lbl">cache_read tokens</div></div>
+      </div>
+
+      <h3>実施作業の概要</h3>
+      <p>obs-verify-20260701-001 というタイトルのテストメモを作成し、取得・検索・再取得・削除の全 CRUD サイクルを実施した。S1 でメモの作成と取得を行い、/clear でコンテキストをリセット後、S2 でメモの検索・取得・削除を完了した。obs-verify（観測性検証）目的のエンドツーエンド MCP ツール動作確認シナリオとして実施された。</p>
+
+      <h3>作業量の定量指標</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>指標</th><th>値</th></tr></thead>
+          <tbody>
+            <tr><td>SSM セッション所要時間</td><td>約 2 分 3 秒（04:22:12Z〜04:24:15Z）</td></tr>
+            <tr><td>Bedrock 呼び出し回数（合計）</td><td>11 回（うち generate_session_title: 2 回、ユーザー応答: 9 回）</td></tr>
+            <tr><td>MCP ツール呼び出し</td><td>5 回（create_memo × 1、get_memo × 2、search_memos × 1、delete_memo × 1）</td></tr>
+            <tr><td>DynamoDB 操作</td><td>PutItem × 1、GetItem × 2、Scan × 1、DeleteItem × 1</td></tr>
+            <tr><td>DynamoDB アクセスレコード数</td><td>読み取り（GetItem）2 件 / Scan（全件）1 回 / 書き込み 1 件 / 削除 1 件</td></tr>
+            <tr><td>処理した入力テキスト量</td><td>input_tokens 917（うち cache_read 184,528、cache_create 35,386）</td></tr>
+            <tr><td>生成した出力テキスト量</td><td>output_tokens 2,241</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>コスト内訳（EMF メトリクスより）</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>セッション</th><th>cost.usage</th><th>input</th><th>output</th><th>cacheRead</th><th>cacheCreate</th><th>active_time user</th><th>active_time cli</th></tr></thead>
+          <tbody>
+            <tr><td>S1 (<code>6ad4bee0</code>)</td><td>$0.1406</td><td>449</td><td>976</td><td>69,045</td><td>27,692</td><td>1.688s</td><td>16.907s</td></tr>
+            <tr><td>S2 (<code>ec8463ac</code>)</td><td>$0.0839</td><td>468</td><td>1,265</td><td>115,483</td><td>7,694</td><td>3.212s</td><td>16.790s</td></tr>
+            <tr style="font-weight:700;background:#e8edf3"><td>合計</td><td>$0.2244</td><td>917</td><td>2,241</td><td>184,528</td><td>35,386</td><td>4.900s</td><td>33.697s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====== 完全タイムライン ====== -->
+    <section>
+      <h2>完全タイムライン</h2>
+      <p class="timeline-note">全イベントを時系列順に掲載。⚠️ は要注意イベント。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>時刻 (UTC)</th><th>ソース</th><th>イベント</th></tr></thead>
+          <tbody>
+            <tr><td>04:22:12Z</td><td>SSM</td><td><span class="event-key">▶ SSM セッション 開始</span></td></tr>
+            <tr><td>04:22:12Z</td><td>CloudTrail</td><td><code>ssm:StartSession</code> — doc=FaradayStack-ClaudeSessionDocument-5YfSwyzLMCdv, target=i-0d3f35fdebd11b99d, srcIP=35.200.74.87</td></tr>
+            <tr><td>04:22:12Z</td><td>CloudTrail</td><td><code>ssm:CreateDataChannel</code> / <code>ssm:OpenDataChannel</code></td></tr>
+            <tr><td>04:22:15Z</td><td>CloudTrail</td><td><code>bedrock:InvokeModel</code> × 9 ValidationException、× 2 AccessDenied — 起動時モデル疎通確認（既知正常動作）</td></tr>
+            <tr><td>04:22:15Z</td><td>CloudTrail</td><td><code>bedrock:ListInferenceProfiles</code> AccessDenied — 起動時疎通確認（既知正常動作）</td></tr>
+            <tr><td>04:22:20Z</td><td>OTel</td><td><span class="event-key">▶ Claude Code S1 開始</span>（<code>6ad4bee0</code>）<code>mcp_server_connection</code> — AgentCore Gateway 初期化</td></tr>
+            <tr><td>04:22:20Z</td><td>aws/spans</td><td>AgentCore.Gateway.Initialize (36ms) / NotificationsInitialized (52ms) / ListTools (65ms)</td></tr>
+            <tr><td>04:22:45Z</td><td>OTel</td><td>[S1] <code>user_prompt</code> (d445aeb0) — メモ作成・取得リクエスト</td></tr>
+            <tr><td>04:22:47Z</td><td>OTel</td><td>[S1] <code>api_request</code> generate_session_title — $0.001671, in=417, out=28</td></tr>
+            <tr><td>04:22:51Z</td><td>OTel</td><td>[S1] <code>tool_decision</code>: ToolSearch → accept（source=<strong>config</strong>）✅</td></tr>
+            <tr><td>04:22:51Z</td><td>OTel</td><td>[S1] <code>api_request</code> repl_main #1 — $0.0949, in=10, out=373, cache_create=23,800</td></tr>
+            <tr><td>04:22:55Z</td><td>OTel</td><td>[S1] <code>api_request</code> repl_main #2 — $0.0122, in=10, out=238, cache_read=23,800</td></tr>
+            <tr><td>04:22:58Z</td><td>OTel</td><td>[S1] <code>tool_decision</code>: mcp_tool (create_memo) → accept（source=<strong>user_permanent</strong>）✅</td></tr>
+            <tr><td>04:22:58Z</td><td>aws/spans</td><td>Gateway InvokeTool create_memo 開始 (1,910ms)</td></tr>
+            <tr><td>04:23:00Z</td><td>aws/spans</td><td>Lambda index.lambda_handler (227ms) → DynamoDB.PutItem (223ms)【コールドスタート Init=1,271ms】</td></tr>
+            <tr><td>04:23:00Z</td><td>OTel</td><td>[S1] <code>tool_result</code>: create_memo — id=366f5b78-1cfb-4dbd-b468-c32ca5b63bc8</td></tr>
+            <tr><td>04:23:03Z</td><td>OTel</td><td>[S1] <code>api_request</code> repl_main #3 — $0.0207, in=6, out=151, cache_read=21,014, cache_create=3,217</td></tr>
+            <tr><td>04:23:05Z</td><td>OTel</td><td>[S1] <code>tool_decision</code>: mcp_tool (get_memo) → accept（source=<strong>user_permanent</strong>）✅</td></tr>
+            <tr><td>04:23:05Z</td><td>aws/spans</td><td>Gateway InvokeTool get_memo (152ms)</td></tr>
+            <tr><td>04:23:05Z</td><td>aws/spans</td><td>Lambda index.lambda_handler (21ms) → DynamoDB.GetItem (20ms)</td></tr>
+            <tr><td>04:23:05Z</td><td>OTel</td><td>[S1] <code>tool_result</code>: get_memo — id=366f5b78-1cfb-4dbd-b468-c32ca5b63bc8</td></tr>
+            <tr><td>04:23:09Z</td><td>OTel</td><td>[S1] <code>api_request</code> repl_main #4 — $0.0111, in=6, out=186, cache_read=24,231</td></tr>
+            <tr><td>04:23:25Z</td><td>OTel</td><td>[S1] <code>user_prompt</code> (f8656040) — /clear コマンド</td></tr>
+            <tr><td>04:23:25Z</td><td>OTel</td><td><span class="event-key">◀ Claude Code S1 終了</span>（/clear）</td></tr>
+            <tr><td>04:23:37Z</td><td>OTel</td><td><span class="event-key">▶ Claude Code S2 開始</span>（<code>ec8463ac</code>）<code>user_prompt</code> (ba6fdd4a) — 検索・取得・削除リクエスト</td></tr>
+            <tr><td>04:23:38Z</td><td>OTel</td><td>[S2] <code>api_request</code> generate_session_title — $0.001635, in=430, out=23</td></tr>
+            <tr><td>04:23:44Z</td><td>OTel</td><td>[S2] <code>tool_decision</code>: ToolSearch → accept（source=<strong>config</strong>）✅</td></tr>
+            <tr><td>04:23:44Z</td><td>OTel</td><td>[S2] <code>api_request</code> repl_main #1 — $0.0255, in=10, out=552, cache_read=21,014, cache_create=2,903</td></tr>
+            <tr><td>04:23:48Z</td><td>OTel</td><td>[S2] <code>api_request</code> repl_main #2 — $0.0121, in=10, out=175, cache_read=23,917</td></tr>
+            <tr><td>04:23:51Z</td><td>OTel</td><td>[S2] <code>tool_decision</code>: mcp_tool (search_memos) → accept（source=<strong>user_permanent</strong>）✅</td></tr>
+            <tr><td>04:23:51Z</td><td>aws/spans</td><td>Gateway InvokeTool search_memos (138ms)</td></tr>
+            <tr class="warn-row"><td>04:23:51Z</td><td>aws/spans</td><td><span class="event-warn">⚠️ Lambda index.lambda_handler (12ms) → DynamoDB.Scan (12ms)</span></td></tr>
+            <tr><td>04:23:51Z</td><td>OTel</td><td>[S2] <code>tool_result</code>: search_memos — query="obs-verify-20260701-001"</td></tr>
+            <tr><td>04:23:54Z</td><td>OTel</td><td>[S2] <code>tool_decision</code>: mcp_tool (get_memo) → accept（source=<strong>config</strong>）✅</td></tr>
+            <tr><td>04:23:54Z</td><td>aws/spans</td><td>Gateway InvokeTool get_memo (157ms)</td></tr>
+            <tr><td>04:23:54Z</td><td>aws/spans</td><td>Lambda index.lambda_handler (9ms) → DynamoDB.GetItem (9ms)</td></tr>
+            <tr><td>04:23:54Z</td><td>OTel</td><td>[S2] <code>tool_result</code>: get_memo — id=366f5b78-1cfb-4dbd-b468-c32ca5b63bc8</td></tr>
+            <tr><td>04:23:58Z</td><td>OTel</td><td>[S2] <code>api_request</code> repl_main #4 — $0.0118, in=6, out=203, cache_read=24,588</td></tr>
+            <tr><td>04:24:01Z</td><td>OTel</td><td>[S2] <code>tool_decision</code>: mcp_tool (delete_memo) → accept（source=<strong>user_permanent</strong>）✅</td></tr>
+            <tr><td>04:24:01Z</td><td>aws/spans</td><td>Gateway InvokeTool delete_memo (173ms)</td></tr>
+            <tr><td>04:24:01Z</td><td>aws/spans</td><td>Lambda index.lambda_handler (27ms) → DynamoDB.DeleteItem (27ms)</td></tr>
+            <tr><td>04:24:01Z</td><td>OTel</td><td>[S2] <code>tool_result</code>: delete_memo — id=366f5b78-1cfb-4dbd-b468-c32ca5b63bc8</td></tr>
+            <tr><td>04:24:03Z</td><td>OTel</td><td>[S2] <code>api_request</code> repl_main #5 — $0.0096, in=6, out=77, cache_read=24,950</td></tr>
+            <tr><td>04:24:13Z</td><td>OTel</td><td>[S2] <code>user_prompt</code> (93eae7f5) — /exit</td></tr>
+            <tr><td>04:24:13Z</td><td>OTel</td><td><span class="event-key">◀ Claude Code S2 終了</span>（/exit）</td></tr>
+            <tr><td>04:24:15Z</td><td>SSM</td><td><span class="event-key">◀ SSM セッション 終了</span>（推定）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====== モデル呼び出し詳細 ====== -->
+    <section>
+      <h2>モデル呼び出し詳細</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>セッション</th><th>時刻(UTC)</th><th>query_source</th><th>cost</th><th>input</th><th>output</th><th>cache_read</th><th>cache_create</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>S1</td><td>04:22:47Z</td><td>generate_session_title</td><td>$0.001671</td><td>417</td><td>28</td><td>0</td><td>0</td></tr>
+            <tr><td>2</td><td>S1</td><td>04:22:51Z</td><td>repl_main</td><td>$0.094875</td><td>10</td><td>373</td><td>0</td><td>23,800</td></tr>
+            <tr><td>3</td><td>S1</td><td>04:22:55Z</td><td>repl_main</td><td>$0.012229</td><td>10</td><td>238</td><td>23,800</td><td>397</td></tr>
+            <tr><td>4</td><td>S1</td><td>04:23:03Z</td><td>repl_main</td><td>$0.020651</td><td>6</td><td>151</td><td>21,014</td><td>3,217</td></tr>
+            <tr><td>5</td><td>S1</td><td>04:23:09Z</td><td>repl_main</td><td>$0.011120</td><td>6</td><td>186</td><td>24,231</td><td>278</td></tr>
+            <tr><td>6</td><td>S2</td><td>04:23:38Z</td><td>generate_session_title</td><td>$0.001635</td><td>430</td><td>23</td><td>0</td><td>0</td></tr>
+            <tr><td>7</td><td>S2</td><td>04:23:44Z</td><td>repl_main</td><td>$0.025500</td><td>10</td><td>552</td><td>21,014</td><td>2,903</td></tr>
+            <tr><td>8</td><td>S2</td><td>04:23:48Z</td><td>repl_main</td><td>$0.012121</td><td>10</td><td>175</td><td>23,917</td><td>611</td></tr>
+            <tr><td>9</td><td>S2</td><td>04:23:54Z</td><td>repl_main</td><td>$0.023250</td><td>6</td><td>235</td><td>21,014</td><td>3,574</td></tr>
+            <tr><td>10</td><td>S2</td><td>04:23:58Z</td><td>repl_main</td><td>$0.011797</td><td>6</td><td>203</td><td>24,588</td><td>362</td></tr>
+            <tr><td>11</td><td>S2</td><td>04:24:03Z</td><td>repl_main</td><td>$0.009573</td><td>6</td><td>77</td><td>24,950</td><td>244</td></tr>
+            <tr style="font-weight:700;background:#e8edf3"><td colspan="4">合計</td><td>$0.224422</td><td>917</td><td>2,241</td><td>184,528</td><td>35,386</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====== 呼び出しグラフ ====== -->
+    <section>
+      <h2>呼び出しグラフ</h2>
+      <div class="mermaid-wrap">
+        <div class="mermaid">
+graph TD
+    User["👤 user@example.com<br/>AWSReservedSSO_AdministratorAccess"]
+
+    subgraph EC2["EC2: i-0d3f35fdebd11b99d (FaradayStack-InstanceRole)"]
+        CC1["Claude Code v2.1.196<br/>Session 1: 6ad4bee0<br/>trace: 4fdedd11 (24.2s)"]
+        CC2["Claude Code v2.1.196<br/>Session 2: ec8463ac<br/>trace: 9d876a3a (26.6s)"]
+    end
+
+    subgraph BedrockSvc["Bedrock (ap-northeast-1)"]
+        BR["jp.anthropic.claude-sonnet-4-5-20250929-v1:0<br/>InvokeModelWithResponseStream × 11<br/>合計 ≈ $0.224"]
+    end
+
+    GW["AgentCore Gateway<br/>faradaygateway-brhiamuriv<br/>InvokeTool × 5"]
+
+    LH["Lambda: FaradayMemoMCP<br/>index.lambda_handler × 5<br/>（1回コールドスタート）"]
+
+    DDB["DynamoDB: FaradayMemos<br/>PutItem × 1 / GetItem × 2<br/>Scan × 1 / DeleteItem × 1"]
+
+    User -->|"ssm:StartSession<br/>04:22:12Z"| CC1
+    CC1 -.->|"/clear → resume<br/>04:23:25Z"| CC2
+    CC1 -->|"5 calls / $0.141"| BR
+    CC2 -->|"6 calls / $0.084"| BR
+    CC1 -.->|"create_memo / get_memo<br/>（MCP stdio・トレース境界）"| GW
+    CC2 -.->|"search_memos / get_memo / delete_memo<br/>（MCP stdio・トレース境界）"| GW
+    GW --> LH --> DDB
+        </div>
+      </div>
+      <p style="margin-top:12px;font-size:12px;color:#666;">
+        Gateway → Lambda → DynamoDB は X-Ray traceId（<code>6a4496220d6a8c16</code> 等）で 5 呼び出し全件が単一トレースとして連携している。EC2 側（Claude Code）のトレース（<code>4fdedd11</code>、<code>9d876a3a</code> 等）は MCP stdio の設計上のトレース境界により別 traceId となるため、セッション単位の集約は OTel イベントおよび SSM ログを参照。
+      </p>
+    </section>
+
+    <!-- ====== CloudTrail ====== -->
+    <section>
+      <h2>CloudTrail 追加証跡</h2>
+
+      <h3>証跡完全性</h3>
+      <p><code>cloudtrail:StopLogging</code> / <code>cloudtrail:DeleteTrail</code> / <code>logs:DeleteLogGroup</code> / <code>logs:DeleteLogEvents</code> / <code>logs:PutRetentionPolicy</code> は検出されず。証跡完全性に問題なし。<span class="verdict-ok">✅</span></p>
+
+      <h3>想定外 API 一覧</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>API</th><th>回数</th><th>判定</th><th>理由</th></tr></thead>
+          <tbody>
+            <tr><td>DescribeAlarms</td><td>24</td><td class="verdict-ok">✅</td><td>CloudWatch コンソール 1 分ポーリング（背景処理）</td></tr>
+            <tr><td>DescribeStacks</td><td>3</td><td class="verdict-ok">✅</td><td>CloudFormation コンソール背景ポーリング</td></tr>
+            <tr><td>DescribeMetricFilters</td><td>2</td><td class="verdict-ok">✅</td><td>CloudWatch Metrics コンソール背景ポーリング</td></tr>
+            <tr><td>DescribeInstances</td><td>1</td><td class="verdict-ok">✅</td><td>EC2 コンソール背景ポーリング</td></tr>
+            <tr><td>UpdateInstanceInformation</td><td>1</td><td class="verdict-ok">✅</td><td>SSM エージェントの定期ハートビート</td></tr>
+            <tr><td>ListInstanceAssociations</td><td>1</td><td class="verdict-ok">✅</td><td>SSM エージェントの定期ポーリング</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>スタック外ロールへの AssumeRole: <code>aws-service-role/ssm-quicksetup.amazonaws.com</code>（SSM Quick Setup サービスロール）および <code>aws-service-role/application-signals.cloudwatch.amazonaws.com</code>（CloudWatch Application Signals バックグラウンドサービス）。いずれも AWS マネージドサービスの自動動作であり、Claude Code の操作ではない。</p>
+      <p>S3 / IAM / Secrets Manager / EC2 管理系 API: なし <span class="verdict-ok">✅</span></p>
+
+      <h3>起動時モデル疎通確認</h3>
+      <p><code>04:22:15Z</code> に <code>InvokeModel</code> が 9件 <code>ValidationException</code> / 2件 <code>AccessDenied</code> で失敗。<code>ListInferenceProfiles</code> も 1件 <code>AccessDenied</code>。Claude Code v2.1.196 の起動時モデル可用性確認として既知の正常動作。課金対象の成功呼び出しには含まれない。</p>
+
+      <h3>userAgent による Claude Code バージョン独立確認</h3>
+      <p>CloudTrail の <code>InvokeModelWithResponseStream</code> 呼び出しの userAgent: <code>claude-cli/2.1.196 (external, cli)</code> — SSM ログのバナーから読み取った v2.1.196 と一致。<span class="verdict-ok">✅</span></p>
+
+      <h3>IAM ロールチェーン</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>時刻</th><th>ロール</th><th>roleSessionName</th><th>対応する処理</th></tr></thead>
+          <tbody>
+            <tr><td>04:22:12Z</td><td>aws-service-role/ssm-quicksetup</td><td>QuickSetupSession</td><td>SSM Quick Setup バックグラウンド</td></tr>
+            <tr><td>04:22:50Z</td><td>FaradayStack-BedrockLoggingRole71F633EF</td><td>BedrockModelInvocationLogSession</td><td>S1 Bedrock 呼び出しログ記録</td></tr>
+            <tr><td>04:22:58Z</td><td>FaradayStack-AgentCoreGatewayRoleB10592CC</td><td>gateway-session-77d8a555…</td><td>create_memo Gateway 認証</td></tr>
+            <tr><td>04:22:58Z（3件）</td><td>FaradayStack-MemoLambdaServiceRoleE093D938</td><td>tracing / FaradayMemoMCP</td><td>create_memo Lambda 実行・ADOT トレーシング</td></tr>
+            <tr><td>04:23:00Z</td><td>FaradayStack-BedrockLoggingRole71F633EF</td><td>BedrockModelInvocationLogSession</td><td>Bedrock ログ記録</td></tr>
+            <tr><td>04:23:05Z</td><td>FaradayStack-AgentCoreGatewayRoleB10592CC</td><td>gateway-session-57291ff6…</td><td>get_memo (S1) Gateway 認証</td></tr>
+            <tr><td>04:23:05Z</td><td>FaradayStack-MemoLambdaServiceRoleE093D938</td><td>tracing</td><td>get_memo ADOT トレーシング</td></tr>
+            <tr><td>04:23:10Z</td><td>FaradayStack-BedrockLoggingRole71F633EF</td><td>BedrockModelInvocationLogSession</td><td>Bedrock ログ記録</td></tr>
+            <tr><td>04:23:40Z</td><td>FaradayStack-BedrockLoggingRole71F633EF</td><td>BedrockModelInvocationLogSession</td><td>S2 Bedrock ログ記録</td></tr>
+            <tr><td>04:23:50Z</td><td>FaradayStack-BedrockLoggingRole71F633EF</td><td>BedrockModelInvocationLogSession</td><td>Bedrock ログ記録</td></tr>
+            <tr><td>04:23:51Z</td><td>FaradayStack-AgentCoreGatewayRoleB10592CC</td><td>gateway-session-f800bed5…</td><td>search_memos Gateway 認証</td></tr>
+            <tr><td>04:23:51Z</td><td>FaradayStack-MemoLambdaServiceRoleE093D938</td><td>tracing</td><td>search_memos ADOT トレーシング</td></tr>
+            <tr><td>04:23:54Z</td><td>FaradayStack-AgentCoreGatewayRoleB10592CC</td><td>gateway-session-caf10464…</td><td>get_memo (S2) Gateway 認証</td></tr>
+            <tr><td>04:23:54Z</td><td>FaradayStack-MemoLambdaServiceRoleE093D938</td><td>tracing</td><td>get_memo ADOT トレーシング</td></tr>
+            <tr><td>04:24:00Z</td><td>FaradayStack-BedrockLoggingRole71F633EF</td><td>BedrockModelInvocationLogSession</td><td>Bedrock ログ記録</td></tr>
+            <tr><td>04:24:01Z</td><td>FaradayStack-AgentCoreGatewayRoleB10592CC</td><td>gateway-session-e2a55524…</td><td>delete_memo Gateway 認証</td></tr>
+            <tr><td>04:24:01Z</td><td>FaradayStack-MemoLambdaServiceRoleE093D938</td><td>tracing</td><td>delete_memo ADOT トレーシング</td></tr>
+            <tr><td>04:24:10Z</td><td>FaradayStack-BedrockLoggingRole71F633EF</td><td>BedrockModelInvocationLogSession</td><td>Bedrock ログ記録</td></tr>
+            <tr><td>04:24:12Z〜52Z（4件）</td><td>aws-service-role/application-signals</td><td>TopologyService</td><td>CloudWatch Application Signals バックグラウンド</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>全 AssumeRole 遷移先はスタック管理下ロールおよび AWS マネージドサービスロールに閉じている。外部アカウント・スタック外への遷移なし。<span class="verdict-ok">✅</span></p>
+
+      <h3>KMS Decrypt</h3>
+      <p><code>04:22:58Z</code> に <code>FaradayStack-MemoLambdaServiceRoleE093D938</code> が <code>kms:Decrypt</code> を実行。<code>encryptionContext.aws:lambda:FunctionArn = arn:aws:lambda:ap-northeast-1:346929044083:function:FaradayMemoMCP</code>。Lambda 環境変数の CMK 復号（コールドスタート時の正常動作）。<span class="verdict-ok">✅</span></p>
+
+      <h3>Secrets Manager / SSM Parameter Store（SecureString）アクセス</h3>
+      <p>なし <span class="verdict-ok">✅</span></p>
+    </section>
+
+    <!-- ====== ツール実行許可 ====== -->
+    <section>
+      <h2>ツール実行許可評価</h2>
+      <p>OTel の <code>tool_result</code> イベント（実際に実行されたツール）を起点に、対応する <code>tool_decision</code> イベントの有無と許可経路を照合した。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>ツール</th><th>セッション</th><th>実行時刻</th><th>tool_decision</th><th>source</th><th>decision</th><th>判定</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>ToolSearch</td><td>S1</td><td>04:22:51Z</td><td>✅ あり</td><td>config</td><td>accept</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>2</td><td>create_memo（MCP）</td><td>S1</td><td>04:22:58Z</td><td>✅ あり</td><td>user_permanent</td><td>accept</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>3</td><td>get_memo（MCP）</td><td>S1</td><td>04:23:05Z</td><td>✅ あり</td><td>user_permanent</td><td>accept</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>4</td><td>ToolSearch</td><td>S2</td><td>04:23:44Z</td><td>✅ あり</td><td>config</td><td>accept</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>5</td><td>search_memos（MCP）</td><td>S2</td><td>04:23:51Z</td><td>✅ あり</td><td>user_permanent</td><td>accept</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>6</td><td>get_memo（MCP）</td><td>S2</td><td>04:23:54Z</td><td>✅ あり</td><td>config</td><td>accept</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>7</td><td>delete_memo（MCP）</td><td>S2</td><td>04:24:01Z</td><td>✅ あり</td><td>user_permanent</td><td>accept</td><td class="verdict-ok">✅</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>tool_decision なしで実行されたツール: 0件</strong></p>
+      <p><strong>許可経路の内訳:</strong></p>
+      <ul>
+        <li><code>user_permanent</code>（ユーザーが対話的に承認・永続化）: create_memo、get_memo (S1)、search_memos、delete_memo</li>
+        <li><code>config</code>（Claude Code 設定による自動承認）: ToolSearch × 2、get_memo (S2)（S1 で user_permanent 承認済みのため S2 で自動適用）</li>
+      </ul>
+      <p>全 7 件に tool_decision イベントあり。<span class="verdict-ok">✅</span></p>
+    </section>
+
+    <!-- ====== Gateway/Lambda/DynamoDB ====== -->
+    <section>
+      <h2>Gateway / Lambda / DynamoDB トレース連携</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ツール</th><th>traceId（Gateway/Lambda）</th><th>GW 所要時間</th><th>Lambda 所要時間</th><th>DynamoDB 操作</th><th>コールドスタート</th><th>XRAY 一致</th></tr></thead>
+          <tbody>
+            <tr><td>create_memo</td><td><code>6a4496220d6a8c16</code></td><td>1,910ms</td><td>227ms</td><td>PutItem (223ms)</td><td>✅ Init=1,271ms</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>get_memo (S1)</td><td><code>6a44962904be3c45</code></td><td>152ms</td><td>25ms</td><td>GetItem (20ms)</td><td>—</td><td class="verdict-ok">✅</td></tr>
+            <tr class="warn-row"><td>search_memos</td><td><code>6a44965770d3aa9c</code></td><td>138ms</td><td>31ms</td><td><span class="event-warn">Scan (12ms) ⚠️</span></td><td>—</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>get_memo (S2)</td><td><code>6a44965a59b62c1c</code></td><td>157ms</td><td>12ms</td><td>GetItem (9ms)</td><td>—</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>delete_memo</td><td><code>6a449661147823ae</code></td><td>173ms</td><td>27ms</td><td>DeleteItem (27ms)</td><td>—</td><td class="verdict-ok">✅</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>5 / 5 件のトレースで Gateway traceId と Lambda XRAY TraceId が一致。Gateway → Lambda → DynamoDB は単一 X-Ray トレースとして連携している。<span class="verdict-ok">✅</span></p>
+      <p><strong>create_memo の所要時間について:</strong> Gateway 側の 1,910ms は Lambda のコールドスタート（Init Duration=1,271ms）により発生。コールドスタートを除いた実処理時間（227ms）は他呼び出しと同水準であり、異常ではない。</p>
+      <div class="warn-banner">
+        <strong>⚠️ DynamoDB.Scan（search_memos）について</strong>
+        query="obs-verify-20260701-001" で実行。Scan は FaradayMemos テーブル全件を対象とするため、他ユーザーのメモが存在した場合そのデータも Lambda が参照可能な状態になる。Lambda の search_memos 実装をフィルタ付き Query または GSI（Global Secondary Index）に変更することを推奨。
+      </div>
+    </section>
+
+    <!-- ====== Bedrock ↔ OTel ====== -->
+    <section>
+      <h2>Bedrock ログ ↔ OTel クロスバリデーション</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>確認項目</th><th>CloudTrail（Bedrock）</th><th>OTel（Claude Code）</th><th>判定</th></tr></thead>
+          <tbody>
+            <tr><td>成功呼び出し件数</td><td>22件（11呼び出し × 2レコード）</td><td>11件（api_request イベント）</td><td class="verdict-ok">✅ 一致</td></tr>
+            <tr><td>generate_session_title 呼び出し</td><td>04:22:47Z (S1)、04:23:38Z (S2) 各 1 回</td><td>2件（generate_session_title）</td><td class="verdict-ok">✅ 一致</td></tr>
+            <tr><td>ユーザー応答呼び出し</td><td>9件</td><td>9件（repl_main）</td><td class="verdict-ok">✅ 一致</td></tr>
+            <tr><td>使用モデル</td><td><code>jp.anthropic.claude-sonnet-4-5-20250929-v1:0</code></td><td>OTel に明示なし</td><td class="verdict-ok">✅ Bedrock 側で確認</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px;color:#555;">CloudTrail の InvokeModelWithResponseStream が 22 件に見える理由: 各呼び出しが 2 つの CloudTrail レコードとして記録されている（EC2 インスタンスロールからの呼び出しレコード + Bedrock サービス側のレコード）。内 11 件はモデル ID 付き（<code>jp.anthropic.claude-sonnet-4-5-20250929-v1:0</code>）、残り 11 件は requestParameters 未取得（<code>model=?</code>）。実際の呼び出し数は 11 回で OTel の api_request イベント数と一致。</p>
+    </section>
+
+    <!-- ====== CloudWatch Logs ====== -->
+    <section>
+      <h2>CloudWatch Logs 追加証跡（Lambda 実行ログ実体）</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>呼び出し</th><th>RequestId</th><th>Duration</th><th>Billed</th><th>Init Duration</th><th>Max Memory</th><th>XRAY TraceId</th></tr></thead>
+          <tbody>
+            <tr><td>create_memo</td><td><code>3c3e1101</code></td><td>227ms</td><td>1,499ms</td><td>1,271ms（コールドスタート）</td><td>121 MB / 256 MB</td><td><code>1-6a449622-0d6a8c16…</code> <span class="verdict-ok">✅</span></td></tr>
+            <tr><td>get_memo (S1)</td><td><code>663674e5</code></td><td>25ms</td><td>26ms</td><td>—</td><td>121 MB</td><td><code>1-6a449629-04be3c45…</code> <span class="verdict-ok">✅</span></td></tr>
+            <tr><td>search_memos</td><td><code>35e9713c</code></td><td>31ms</td><td>32ms</td><td>—</td><td>121 MB</td><td><code>1-6a449657-70d3aa9c…</code> <span class="verdict-ok">✅</span></td></tr>
+            <tr><td>get_memo (S2)</td><td><code>80baa8e5</code></td><td>12ms</td><td>13ms</td><td>—</td><td>121 MB</td><td><code>1-6a44965a-59b62c1c…</code> <span class="verdict-ok">✅</span></td></tr>
+            <tr><td>delete_memo</td><td><code>c9472bc8</code></td><td>30ms</td><td>30ms</td><td>—</td><td>121 MB</td><td><code>1-6a449661-147823ae…</code> <span class="verdict-ok">✅</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Lambda 入力ペイロード</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>呼び出し</th><th>ペイロード</th></tr></thead>
+          <tbody>
+            <tr><td>create_memo</td><td><code>{"title": "obs-verify-20260701-001", "content": "This is a test memo created on 2026-07-01 for verification purposes."}</code></td></tr>
+            <tr><td>get_memo (S1)</td><td><code>{"memo_id": "366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}</code></td></tr>
+            <tr><td>search_memos</td><td><code>{"query": "obs-verify-20260701-001"}</code></td></tr>
+            <tr><td>get_memo (S2)</td><td><code>{"memo_id": "366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}</code></td></tr>
+            <tr><td>delete_memo</td><td><code>{"memo_id": "366f5b78-1cfb-4dbd-b468-c32ca5b63bc8"}</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>DynamoDB 読み取りアクセス範囲</h3>
+      <ul>
+        <li>GetItem × 2: <code>id=366f5b78-1cfb-4dbd-b468-c32ca5b63bc8</code> のみアクセス（自分のメモのみ）<span class="verdict-ok"> ✅</span></li>
+        <li>Scan × 1: FaradayMemos テーブル全件対象 <span class="verdict-warn">⚠️</span></li>
+      </ul>
+    </section>
+
+    <!-- ====== コンテンツセキュリティ ====== -->
+    <section>
+      <h2>コンテンツセキュリティ評価</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>観点</th><th>判定</th><th>根拠</th></tr></thead>
+          <tbody>
+            <tr><td>機密情報・個人情報の漏洩リスク</td><td class="verdict-ok">✅</td><td>プロンプト・メモ内容は obs-verify 向けのテスト操作。メモ内容「This is a test memo created on 2026-07-01 for verification purposes.」— 機密情報なし</td></tr>
+            <tr><td>プロンプトインジェクションの痕跡</td><td class="verdict-ok">✅</td><td>tool_result（Lambda 返り値）に "ignore previous instructions" 等の注入文字列なし</td></tr>
+            <tr><td>ポリシー違反コンテンツ</td><td class="verdict-ok">✅</td><td>業務関連（観測性検証）の適切な操作。禁止トピックなし</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Lambda ペイロードに機密情報・有害コンテンツなし。Claude 応答はツール操作の確認・案内に限定されており、想定外の情報漏洩や不正誘導の痕跡は検出されなかった。</p>
+    </section>
+
+    <!-- ====== エラー・障害分析 ====== -->
+    <section>
+      <h2>エラー・障害分析</h2>
+
+      <h3>既知動作エラー（ユーザー影響なし）</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>時刻(UTC)</th><th>レイヤー</th><th>エラー種別</th><th>内容</th></tr></thead>
+          <tbody>
+            <tr><td>04:22:15Z</td><td>Bedrock (CloudTrail)</td><td>ValidationException × 9</td><td>起動時モデル疎通確認（既知正常動作）</td></tr>
+            <tr><td>04:22:15Z</td><td>Bedrock (CloudTrail)</td><td>AccessDenied × 2</td><td>起動時モデル疎通確認（既知正常動作）</td></tr>
+            <tr><td>04:22:15Z</td><td>Bedrock (CloudTrail)</td><td>ListInferenceProfiles AccessDenied × 1</td><td>起動時疎通確認（既知正常動作）</td></tr>
+            <tr><td>04:22:31Z</td><td>CloudWatch Logs (CloudTrail)</td><td>ResourceAlreadyExistsException</td><td>ADOT ストリーム重複作成（既存ストリームあり、既知正常動作）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>いずれも Claude Code / ADOT の起動シーケンスにおける既知の動作であり、ユーザーリクエストへの影響なし。<span class="verdict-ok">✅</span></p>
+
+      <h3>ツール実行・Bedrock・Lambda・DynamoDB レイヤーでの未解消エラー</h3>
+      <p>なし <span class="verdict-ok">✅</span>（aws/spans の ERROR スパン: 0件、Lambda ERROR ログ: 0件）</p>
+    </section>
+
+    <!-- ====== データ整合性 ====== -->
+    <section>
+      <h2>データ整合性</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>確認内容</th><th>結果</th><th>判定</th></tr></thead>
+          <tbody>
+            <tr><td>作成操作後のアイテム存在確認</td><td>create_memo → DynamoDB.PutItem 成功。tool_result で <code>id=366f5b78-1cfb-4dbd-b468-c32ca5b63bc8</code> を返却</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>削除操作後のアイテム消去確認</td><td><code>aws dynamodb get-item</code> → 空レスポンス（アイテムなし）</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>操作を通じた memo_id 一貫性</td><td>全操作（get_memo × 2、delete_memo）で同一 id <code>366f5b78-1cfb-4dbd-b468-c32ca5b63bc8</code> を使用</td><td class="verdict-ok">✅</td></tr>
+            <tr><td>Lambda 入力ペイロード vs OTel tool_input の一致</td><td>Lambda ログの入力ペイロードが OTel tool_decision の内容と整合</td><td class="verdict-ok">✅</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>DynamoDB の実データは、セッション内の CRUD 操作と完全に整合している。メモは作成・取得・検索・削除の全ライフサイクルが obs-verify シナリオとして正常完了し、最終状態として削除済みであることを直接確認した。<span class="verdict-ok">✅</span></p>
+    </section>
+
+  </div><!-- /.body-content -->
+
+  <footer class="report-footer">
+    <span>Faraday 調査レポート — 自動生成</span>
+    <span>調査日: 2026-07-01 &nbsp;|&nbsp; SSM セッション: user@example.com-ltzhoupvjbr9687j26ktcqxqgq</span>
+  </footer>
+
+</div><!-- /.page -->
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default', flowchart: { useMaxWidth: true } });
+</script>
+</body>
+</html>
