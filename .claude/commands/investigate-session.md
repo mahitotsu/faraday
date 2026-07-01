@@ -432,42 +432,41 @@ aws logs filter-log-events \
 
 作成時のポイント：
 - ノードはレイヤー単位で `subgraph` にまとめる（例: `EC2`、`BedrockSvc`、`Gateway`、`LambdaSvc`、`DynamoDBSvc`）。各 subgraph 内に実際のリソース名（インスタンスID・Lambda関数名・テーブル名等）を入れる
-- エッジには手順で取得した実測値（呼び出し回数・traceId・所要時間・コスト）をラベルとして付与し、図だけで定量的な要約が読めるようにする
-- EC2側トレース（`claude-code` サービス）と Gateway 以降のトレース（`aws/spans`）は別 traceId になる。**これは設計上の意図的なトレース境界**（MCP ツール呼び出し単位が X-Ray トレースの適切な粒度）であるため、そのエッジを破線（`-.->`）にして「トレース境界（MCP呼び出し起点）」と表記する。Gateway→Lambda→DynamoDB が1トレースで繋がっている区間は実線にする
+- **Gateway・Lambda・DynamoDB は呼び出し1回ごとにノードを分割せず、リソースごとに単一の矩形で表す。** 呼び出し回数・操作種別（PutItem × 1 / GetItem × 2 など）をノード内テキストに集約することで、同じリソースに複数回アクセスしている事実が視覚的に伝わる。呼び出しごとの traceId・所要時間の詳細は「Gateway/Lambda/DynamoDBトレース連携」テーブルで示す
+- **同一 SSM セッション内で `/clear` → resume が発生した場合は Claude Code セッションを複数ノード（CC1・CC2…）で表す。** CC2 以降のノードには `User -->|"ssm:StartSession"| CC2` を付けず、代わりに `CC1 -.->|"/clear → resume"| CC2` で接続する（`ssm:StartSession` は SSM セッション全体で1回のみ）
+- エッジには手順で取得した実測値（呼び出し回数・コスト）をラベルとして付与し、図だけで定量的な要約が読めるようにする
+- EC2側トレース（`claude-code` サービス）と Gateway 以降のトレース（`aws/spans`）は別 traceId になる。**これは設計上の意図的なトレース境界**（MCP ツール呼び出し単位が X-Ray トレースの適切な粒度）であるため、そのエッジを破線（`-.->`）にして「MCP stdio・トレース境界」と表記する。Gateway→Lambda→DynamoDB が1トレースで繋がっている区間は実線にする
 - 図の直後に1-2文で、どの区間が単一トレースで繋がっており、EC2側（Claude Code セッション）は OTel/SSM ログで横断集約する旨を文章でも補足する
 
-テンプレート例：
+テンプレート例（`/clear` による複数セッション + MCP ツール呼び出しあり）：
 
 ```mermaid
 graph TD
-    User["👤 <ユーザー><br/><IAMロール><br/><接続元IP>"]
+    User["👤 <ユーザー><br/><IAMロール>"]
 
     subgraph EC2["EC2: <instance-id> (<role-name>)"]
-        CC["Claude Code <version><br/>session.id: <resume-uuid><br/>trace <ec2-trace-id> (<duration>)"]
+        CC1["Claude Code <version><br/>Session1: <session-id1><br/>trace: <trace-id1> (<duration>)"]
+        CC2["Claude Code <version><br/>Session2: <session-id2><br/>trace: <trace-id2> (<duration>)"]
     end
 
     subgraph BedrockSvc["Bedrock (<region>)"]
-        BR["<model-id><br/>InvokeModelWithResponseStream x<N><br/>合計 約$<cost>"]
+        BR["<model-id><br/>InvokeModelWithResponseStream × <N><br/>合計 ≈$<cost>"]
     end
 
-    subgraph Gateway["AgentCore Gateway: <gateway-name>"]
-        GW["Gateway.InvokeTool"]
-    end
+    GW["AgentCore Gateway<br/><gateway-name><br/>InvokeTool × <N>"]
 
-    subgraph LambdaSvc["Lambda: <function-name>"]
-        LH["index.lambda_handler"]
-    end
+    LH["Lambda: <function-name><br/>index.lambda_handler × <N><br/>（<コールドスタート有無>）"]
 
-    subgraph DynamoDBSvc["DynamoDB: <table-name>"]
-        DDB["item id=<item-id>"]
-    end
+    DDB["DynamoDB: <table-name><br/><操作種別 × 回数 …>"]
 
-    User -->|"ssm:StartSession"| CC
-    CC -->|"<N> calls"| BR
-    CC -.->|"MCP stdio（トレース境界: ツール呼び出し起点）"| GW
+    User -->|"ssm:StartSession"| CC1
+    CC1 -.->|"/clear → resume"| CC2
+    CC1 -->|"<N> calls"| BR
+    CC2 -->|"<N> calls"| BR
+    CC1 -.->|"<tool1> / <tool2><br/>（MCP stdio・トレース境界）"| GW
+    CC2 -.->|"<tool3> / <tool4> / <tool5><br/>（MCP stdio・トレース境界）"| GW
 
-    GW -->|"<tool><br/>trace <trace-id> / <duration>"| LH
-    LH -->|"<DynamoDB操作> <duration>"| DDB
+    GW --> LH --> DDB
 ```
 
 ### 8. 統合レポートの生成
